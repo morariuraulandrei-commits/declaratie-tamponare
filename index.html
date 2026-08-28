@@ -59,6 +59,14 @@
     color:#33415c;font-size:13px;font-weight:600;border-radius:12px;padding:14px 16px;margin:14px 0;}
   #mainSections.locked #lockNotice{display:flex;}
 
+  .policeCard{background:#f4f6fb;border:1.5px dashed #8fa3c8;}
+  .policeTag{display:inline-block;font-weight:400;color:#33415c;font-size:11.5px;background:#e3e9f7;
+    border-radius:20px;padding:3px 10px;margin-left:2px;vertical-align:middle;}
+  .policeSigWrap{border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:none;position:relative;height:110px;}
+  .policeSigWrap canvas{cursor:crosshair;width:100%;height:100%;}
+  .policeSigPlaceholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#c3cad6;font-size:12.5px;pointer-events:none;}
+
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
   .grid.c3{grid-template-columns:1fr 1fr 1fr;}
   .grid.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
@@ -168,6 +176,10 @@
   .schitaBox{border:1.4px solid #333;min-height:80mm;display:flex;align-items:center;justify-content:center;
     margin:8px 0 10px;overflow:hidden;}
   .schitaBox img{max-width:100%;max-height:80mm;}
+  .avarieBox{border:1.4px solid #333;min-height:60mm;display:flex;align-items:center;justify-content:center;
+    margin:6px 0 8px;overflow:hidden;}
+  .avarieBox img{max-width:100%;max-height:60mm;}
+  .polSigImg{height:26px;display:block;}
   .footNote{font-size:8px;border:1px solid #333;padding:6px 8px;margin-top:10px;}
   .pageFoot{display:flex;justify-content:space-between;margin-top:10px;font-size:9.5px;}
 
@@ -517,6 +529,36 @@
         <label class="chip"><input type="checkbox" name="caracteristica" value="Spart"><span>Spart</span></label>
         <label class="chip"><input type="checkbox" name="caracteristica" value="Lipsă"><span>Lipsă</span></label>
       </div>
+    </section>
+
+    <!-- 10. POZITIONAREA ZONEI AVARIATE (politist) -->
+    <section class="card policeCard">
+      <h2><span class="num">10</span> Poziționarea zonei avariate <span class="policeTag">zonă completată de către polițist</span></h2>
+      <div class="sub">După ce s-a bifat lista de la punctul 9, polițistul marchează aici, direct pe schemele vehiculelor, exact locul avariilor — la fel ca pe formularul tipărit. Apasă/atinge pe desen pentru a pune un semn ✕; apasă din nou pe un semn ca să-l ștergi.</div>
+
+      <div class="toolbarLabel">Instrumente</div>
+      <div class="toolbar" id="avarieToolbar">
+        <button type="button" class="toolbtn" id="avarieUndoBtn" title="Anulează ultimul semn">↩️<span>Anulează</span></button>
+        <button type="button" class="toolbtn" id="avarieClearBtn" title="Golește toate semnele">🗑️<span>Golește</span></button>
+      </div>
+
+      <div class="canvasBox"><canvas id="avarieCanvas" width="900" height="560"></canvas></div>
+      <div class="hint">Schemele arată (de sus în jos, de la stânga): autoturism, moto/scuter cu conducător și pasager, al doilea autoturism, camion și autobuz — vehiculele care nu sunt implicate se ignoră pur și simplu.</div>
+
+      <label style="font-size:12px;font-weight:700;display:block;margin:16px 0 8px;">Date agent de poliție</label>
+      <div class="grid c3">
+        <div class="field"><label>Grad</label><input type="text" id="f_pol_grad"></div>
+        <div class="field"><label>Nume</label><input type="text" id="f_pol_nume"></div>
+        <div class="field"><label>Prenume</label><input type="text" id="f_pol_prenume"></div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Semnătura polițist</label>
+        <div class="policeSigWrap">
+          <canvas id="polSigCanvas" width="860" height="110"></canvas>
+          <div class="policeSigPlaceholder" id="polSigPlaceholder">semnătura agentului (opțional, dacă se semnează digital)</div>
+        </div>
+      </div>
+      <button type="button" class="miniBtn" id="clearPolSigBtn" style="margin-top:8px;">Șterge semnătura polițist</button>
     </section>
 
     </div><!-- /mainSections -->
@@ -1097,6 +1139,172 @@
   });
 
   /* =====================================================================
+     POZIȚIONAREA ZONEI AVARIATE (schema vehiculelor - completată de polițist)
+  ===================================================================== */
+  (function(){
+    const avCanvas = $('avarieCanvas');
+    const avCtx = avCanvas.getContext('2d');
+    let avarieMarks = []; // {x,y} in canvas coordinate space
+
+    function roundRect(ctx,x,y,w,h,r){
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.arcTo(x+w,y,x+w,y+h,r);
+      ctx.arcTo(x+w,y+h,x,y+h,r);
+      ctx.arcTo(x,y+h,x,y,r);
+      ctx.arcTo(x,y,x+w,y,r);
+      ctx.closePath();
+    }
+
+    function drawCarTop(ctx, cx, cy, w, h){
+      ctx.save(); ctx.translate(cx,cy);
+      ctx.strokeStyle='#33415c'; ctx.lineWidth=2;
+      roundRect(ctx, -w/2, -h/2, w, h, 20); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-w/2+12, -h/2+h*0.26); ctx.lineTo(w/2-12, -h/2+h*0.26); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-w/2+12, -h/2+h*0.74); ctx.lineTo(w/2-12, -h/2+h*0.74); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,-h/2+h*0.06); ctx.lineTo(0,-h/2+h*0.20); ctx.stroke();
+      const wheelW=w*0.11, wheelH=h*0.15;
+      [[-w/2-2, -h/2+h*0.16],[w/2-wheelW+2, -h/2+h*0.16],[-w/2-2, h/2-h*0.16-wheelH],[w/2-wheelW+2, h/2-h*0.16-wheelH]].forEach(([x,y])=>{
+        ctx.strokeRect(x,y,wheelW,wheelH);
+      });
+      ctx.restore();
+    }
+
+    function drawMotoTop(ctx, cx, cy, w, h){
+      ctx.save(); ctx.translate(cx,cy);
+      ctx.strokeStyle='#33415c'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.ellipse(0,-h/2+22,20,13,0,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(0,h/2-22,20,13,0,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,-h/2+34); ctx.lineTo(0,h/2-34); ctx.stroke();
+      [[-24,-24],[22,18]].forEach(([dx,dy])=>{
+        ctx.beginPath(); ctx.arc(dx,dy-26,13,0,Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(dx,dy+16,18,36,0,0,Math.PI*2); ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    function drawTruckSide(ctx, x, y, w, h){
+      ctx.save();
+      ctx.strokeStyle='#33415c'; ctx.lineWidth=2;
+      const bodyY = y+h*0.16, bodyH = h*0.5, wheelY = y+h*0.74, wheelR = h*0.075;
+      roundRect(ctx, x+w*0.03, bodyY, w*0.16, bodyH, 6); ctx.stroke();
+      roundRect(ctx, x+w*0.20, bodyY-h*0.06, w*0.76, bodyH+h*0.06, 6); ctx.stroke();
+      for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(x+w*0.20+i*w*0.19, bodyY-h*0.06); ctx.lineTo(x+w*0.20+i*w*0.19, bodyY+bodyH); ctx.stroke(); }
+      [x+w*0.11, x+w*0.30, x+w*0.55, x+w*0.80, x+w*0.92].forEach(wx=>{
+        ctx.beginPath(); ctx.arc(wx, wheelY, wheelR, 0, Math.PI*2); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.moveTo(x+w*0.01,wheelY); ctx.lineTo(x+w*0.99,wheelY); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawBusSide(ctx, x, y, w, h){
+      ctx.save();
+      ctx.strokeStyle='#33415c'; ctx.lineWidth=2;
+      const bodyY = y+h*0.14, bodyH = h*0.56, wheelY = y+h*0.78, wheelR = h*0.08;
+      roundRect(ctx, x+w*0.03, bodyY, w*0.94, bodyH, 10); ctx.stroke();
+      for(let i=1;i<8;i++){
+        const wx = x+w*0.03+i*(w*0.94/8);
+        ctx.beginPath(); ctx.moveTo(wx, bodyY+bodyH*0.12); ctx.lineTo(wx, bodyY+bodyH*0.55); ctx.stroke();
+      }
+      [x+w*0.16, x+w*0.84].forEach(wx=>{
+        ctx.beginPath(); ctx.arc(wx, wheelY, wheelR, 0, Math.PI*2); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.moveTo(x+w*0.01,wheelY); ctx.lineTo(x+w*0.99,wheelY); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawAvarieBase(ctx){
+      ctx.clearRect(0,0,avCanvas.width,avCanvas.height);
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,avCanvas.width,avCanvas.height);
+      ctx.font='11px system-ui, sans-serif'; ctx.fillStyle='#8a95a8'; ctx.textAlign='center';
+      // row 1: car | moto+2 riders | car
+      drawCarTop(ctx, 150, 175, 170, 300); ctx.fillText('Autoturism A', 150, 340);
+      drawMotoTop(ctx, 450, 175, 170, 300); ctx.fillText('Moto / scuter', 450, 340);
+      drawCarTop(ctx, 750, 175, 170, 300); ctx.fillText('Autoturism B', 750, 340);
+      // divider
+      ctx.strokeStyle='#e3e7ee'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(20,380); ctx.lineTo(880,380); ctx.stroke();
+      // row 2: truck | bus
+      drawTruckSide(ctx, 30, 400, 400, 140); ctx.fillText('Camion / TIR', 230, 555);
+      drawBusSide(ctx, 470, 400, 400, 140); ctx.fillText('Autobuz / microbuz', 670, 555);
+    }
+
+    function redrawAvarie(){
+      drawAvarieBase(avCtx);
+      avCtx.fillStyle='#c0392b';
+      avarieMarks.forEach(m=>{
+        avCtx.save();
+        avCtx.translate(m.x, m.y);
+        avCtx.strokeStyle='#c0392b'; avCtx.lineWidth=3.4; avCtx.lineCap='round';
+        const s=9;
+        avCtx.beginPath(); avCtx.moveTo(-s,-s); avCtx.lineTo(s,s); avCtx.stroke();
+        avCtx.beginPath(); avCtx.moveTo(s,-s); avCtx.lineTo(-s,s); avCtx.stroke();
+        avCtx.restore();
+      });
+    }
+
+    function avPoint(e){
+      const rect = avCanvas.getBoundingClientRect();
+      const sx=avCanvas.width/rect.width, sy=avCanvas.height/rect.height;
+      const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+      const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+      return {x:cx*sx,y:cy*sy};
+    }
+
+    avCanvas.addEventListener('pointerdown', e=>{
+      const p = avPoint(e);
+      const hitIndex = avarieMarks.findIndex(m => Math.hypot(m.x-p.x, m.y-p.y) < 16);
+      if(hitIndex >= 0){ avarieMarks.splice(hitIndex,1); }
+      else { avarieMarks.push(p); }
+      redrawAvarie();
+    });
+
+    $('avarieUndoBtn').addEventListener('click', ()=>{ avarieMarks.pop(); redrawAvarie(); });
+    $('avarieClearBtn').addEventListener('click', ()=>{
+      if(avarieMarks.length && !confirm('Ștergi toate semnele de avarie?')) return;
+      avarieMarks=[]; redrawAvarie();
+    });
+
+    redrawAvarie();
+
+    // expose for the print/generate step
+    window.__getAvarieDataUrl = function(){
+      return avarieMarks.length ? avCanvas.toDataURL('image/png') : null;
+    };
+
+    /* police signature pad (separate from the driver's signature — never auto-filled elsewhere) */
+    const polSigCanvas = $('polSigCanvas');
+    const polSigCtx = polSigCanvas.getContext('2d');
+    polSigCtx.lineWidth=2.4; polSigCtx.lineJoin='round'; polSigCtx.lineCap='round'; polSigCtx.strokeStyle='#132043';
+    let polSigDrawing=false, polSigHasContent=false;
+    function polSigPoint(e){
+      const rect = polSigCanvas.getBoundingClientRect();
+      const sx=polSigCanvas.width/rect.width, sy=polSigCanvas.height/rect.height;
+      const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+      const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+      return {x:cx*sx,y:cy*sy};
+    }
+    polSigCanvas.addEventListener('pointerdown', e=>{
+      polSigCanvas.setPointerCapture(e.pointerId);
+      polSigDrawing=true; polSigHasContent=true;
+      $('polSigPlaceholder').style.display='none';
+      const p=polSigPoint(e); polSigCtx.beginPath(); polSigCtx.moveTo(p.x,p.y);
+    });
+    polSigCanvas.addEventListener('pointermove', e=>{
+      if(!polSigDrawing) return;
+      const p=polSigPoint(e); polSigCtx.lineTo(p.x,p.y); polSigCtx.stroke();
+    });
+    window.addEventListener('pointerup', ()=>{ polSigDrawing=false; });
+    $('clearPolSigBtn').addEventListener('click', ()=>{
+      polSigCtx.clearRect(0,0,polSigCanvas.width,polSigCanvas.height);
+      polSigHasContent=false; $('polSigPlaceholder').style.display='flex';
+    });
+    window.__getPolSigDataUrl = function(){
+      return polSigHasContent ? polSigCanvas.toDataURL('image/png') : null;
+    };
+  })();
+
+  /* =====================================================================
      GENERATE PRINT OUTPUT
   ===================================================================== */
   function buildPage1(sigDataUrl){
@@ -1197,7 +1405,7 @@
       '</div>';
   }
 
-  function buildPage2(schitaDataUrl, sigDataUrl){
+  function buildPage2(schitaDataUrl, sigDataUrl, avarieDataUrl, polSigDataUrl){
     const zoneSel = checkedList('zona');
     const caracteristicaSel = checkedList('caracteristica');
     return '<div class="a4-page">'+
@@ -1208,7 +1416,7 @@
 
       '<hr style="margin:12px 0;border:none;border-top:2px solid #333;">'+
 
-      '<div style="text-align:center;font-weight:700;margin-bottom:4px;">ZONĂ AVARIATĂ <span class="sectionNote">(opțional, orientativ — se validează de către polițist)</span></div>'+
+      '<div style="text-align:center;font-weight:700;margin-bottom:4px;">ZONĂ AVARIATĂ <span class="sectionNote">(zonă completată de către polițist)</span></div>'+
       '<div class="zoneGrid">'+zoneItems.map(z=>'<div>'+ck(zoneSel.includes(z))+' '+z+'</div>').join('')+'</div>'+
 
       '<div style="text-align:center;font-weight:700;margin:8px 0 4px;">CARACTERISTICA AVARIEI</div>'+
@@ -1216,8 +1424,10 @@
         ['Înfundat','Zgâriat','Deplasat','Rupt','Spart','Lipsă'].map(c=>'<div>'+ck(caracteristicaSel.includes(c))+' '+c+'</div>').join('')+
       '</div>'+
 
-      '<div class="boxed sectionNote" style="margin-top:12px;">Secțiunea "Poziționarea zonei avariate" (diagrame vehicul) și rubrica "Grad, Nume, Prenume, Semnătură" se completează de către agentul de poliție, pe formularul tipărit.</div>'+
-      '<div class="pageFoot" style="margin-top:26px;"><span>Grad ________ Nume ________________ Prenume ________________</span><span>Semnătura ________________</span></div>'+
+      '<div class="boxed" style="margin-top:12px;"><b>POZIȚIONAREA ZONEI AVARIATE</b> <span class="sectionNote">(zonă completată de către polițist)</span>'+
+      '<div class="avarieBox">'+(avarieDataUrl? '<img src="'+avarieDataUrl+'">' : '<span style="color:#999;font-size:11px;">(nemarcată)</span>')+'</div>'+
+      '</div>'+
+      '<div class="pageFoot" style="margin-top:14px;"><span>Grad '+b(val('f_pol_grad'))+' Nume '+b(val('f_pol_nume'))+' Prenume '+b(val('f_pol_prenume'))+'</span><span>Semnătura '+(polSigDataUrl?'<img class="polSigImg" src="'+polSigDataUrl+'">':b('','wide'))+'</span></div>'+
       '</div>';
   }
 
@@ -1232,8 +1442,10 @@
     }
     const sigDataUrl = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
     const schitaDataUrl = scene.length ? canvas.toDataURL('image/png') : null;
+    const avarieDataUrl = window.__getAvarieDataUrl ? window.__getAvarieDataUrl() : null;
+    const polSigDataUrl = window.__getPolSigDataUrl ? window.__getPolSigDataUrl() : null;
     const out = $('printOutput');
-    out.innerHTML = buildPage1(sigDataUrl) + buildPage2(schitaDataUrl, sigDataUrl);
+    out.innerHTML = buildPage1(sigDataUrl) + buildPage2(schitaDataUrl, sigDataUrl, avarieDataUrl, polSigDataUrl);
     $('previewOverlay').classList.add('show');
     window.scrollTo(0,0);
   });
