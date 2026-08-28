@@ -62,10 +62,6 @@
   .policeCard{background:#f4f6fb;border:1.5px dashed #8fa3c8;}
   .policeTag{display:inline-block;font-weight:400;color:#33415c;font-size:11.5px;background:#e3e9f7;
     border-radius:20px;padding:3px 10px;margin-left:2px;vertical-align:middle;}
-  .policeSigWrap{border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:none;position:relative;height:110px;}
-  .policeSigWrap canvas{cursor:crosshair;width:100%;height:100%;}
-  .policeSigPlaceholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    color:#c3cad6;font-size:12.5px;pointer-events:none;}
 
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
   .grid.c3{grid-template-columns:1fr 1fr 1fr;}
@@ -179,7 +175,6 @@
   .avarieBox{border:1.4px solid #333;min-height:60mm;display:flex;align-items:center;justify-content:center;
     margin:6px 0 8px;overflow:hidden;}
   .avarieBox img{max-width:100%;max-height:60mm;}
-  .polSigImg{height:26px;display:block;}
   .footNote{font-size:8px;border:1px solid #333;padding:6px 8px;margin-top:10px;}
   .pageFoot{display:flex;justify-content:space-between;margin-top:10px;font-size:9.5px;}
 
@@ -531,34 +526,10 @@
       </div>
     </section>
 
-    <!-- 10. POZITIONAREA ZONEI AVARIATE (politist) -->
+    <!-- 10. POZITIONAREA ZONEI AVARIATE (politist) - informativ, nu se completeaza in aplicatie -->
     <section class="card policeCard">
       <h2><span class="num">10</span> Poziționarea zonei avariate <span class="policeTag">zonă completată de către polițist</span></h2>
-      <div class="sub">După ce s-a bifat lista de la punctul 9, polițistul marchează aici, direct pe schemele vehiculelor, exact locul avariilor — la fel ca pe formularul tipărit. Apasă/atinge pe desen pentru a pune un semn ✕; apasă din nou pe un semn ca să-l ștergi.</div>
-
-      <div class="toolbarLabel">Instrumente</div>
-      <div class="toolbar" id="avarieToolbar">
-        <button type="button" class="toolbtn" id="avarieUndoBtn" title="Anulează ultimul semn">↩️<span>Anulează</span></button>
-        <button type="button" class="toolbtn" id="avarieClearBtn" title="Golește toate semnele">🗑️<span>Golește</span></button>
-      </div>
-
-      <div class="canvasBox"><canvas id="avarieCanvas" width="900" height="560"></canvas></div>
-      <div class="hint">Schemele arată (de sus în jos, de la stânga): autoturism, moto/scuter cu conducător și pasager, al doilea autoturism, camion și autobuz — vehiculele care nu sunt implicate se ignoră pur și simplu.</div>
-
-      <label style="font-size:12px;font-weight:700;display:block;margin:16px 0 8px;">Date agent de poliție</label>
-      <div class="grid c3">
-        <div class="field"><label>Grad</label><input type="text" id="f_pol_grad"></div>
-        <div class="field"><label>Nume</label><input type="text" id="f_pol_nume"></div>
-        <div class="field"><label>Prenume</label><input type="text" id="f_pol_prenume"></div>
-      </div>
-      <div class="field" style="margin-top:10px;">
-        <label>Semnătura polițist</label>
-        <div class="policeSigWrap">
-          <canvas id="polSigCanvas" width="860" height="110"></canvas>
-          <div class="policeSigPlaceholder" id="polSigPlaceholder">semnătura agentului (opțional, dacă se semnează digital)</div>
-        </div>
-      </div>
-      <button type="button" class="miniBtn" id="clearPolSigBtn" style="margin-top:8px;">Șterge semnătura polițist</button>
+      <div class="sub" style="margin-bottom:0;">Această rubrică nu se completează în aplicație. Pe declarația generată va apărea goală, cu schemele vehiculelor (autoturisme, moto/scuter, camion, autobuz) — exact ca pe formularul tipărit. Agentul de poliție desenează acolo cu pixul, direct pe hârtie, locul avariilor și tot acolo semnează, alături de gradul, numele și prenumele lui.</div>
     </section>
 
     </div><!-- /mainSections -->
@@ -1142,9 +1113,12 @@
      POZIȚIONAREA ZONEI AVARIATE (schema vehiculelor - completată de polițist)
   ===================================================================== */
   (function(){
-    const avCanvas = $('avarieCanvas');
+    // Rubrica e doar informativă în aplicație — polițistul completează pe hârtie, cu pixul.
+    // Folosim un canvas în afara paginii (nu apare în UI) doar ca să desenăm schema goală
+    // a vehiculelor, pe care o inserăm ca imagine în declarația generată (pagina A4).
+    const avCanvas = document.createElement('canvas');
+    avCanvas.width = 900; avCanvas.height = 560;
     const avCtx = avCanvas.getContext('2d');
-    let avarieMarks = []; // {x,y} in canvas coordinate space
 
     function roundRect(ctx,x,y,w,h,r){
       ctx.beginPath();
@@ -1229,78 +1203,12 @@
       drawBusSide(ctx, 470, 400, 400, 140); ctx.fillText('Autobuz / microbuz', 670, 555);
     }
 
-    function redrawAvarie(){
-      drawAvarieBase(avCtx);
-      avCtx.fillStyle='#c0392b';
-      avarieMarks.forEach(m=>{
-        avCtx.save();
-        avCtx.translate(m.x, m.y);
-        avCtx.strokeStyle='#c0392b'; avCtx.lineWidth=3.4; avCtx.lineCap='round';
-        const s=9;
-        avCtx.beginPath(); avCtx.moveTo(-s,-s); avCtx.lineTo(s,s); avCtx.stroke();
-        avCtx.beginPath(); avCtx.moveTo(s,-s); avCtx.lineTo(-s,s); avCtx.stroke();
-        avCtx.restore();
-      });
-    }
+    drawAvarieBase(avCtx);
 
-    function avPoint(e){
-      const rect = avCanvas.getBoundingClientRect();
-      const sx=avCanvas.width/rect.width, sy=avCanvas.height/rect.height;
-      const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
-      const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
-      return {x:cx*sx,y:cy*sy};
-    }
-
-    avCanvas.addEventListener('pointerdown', e=>{
-      const p = avPoint(e);
-      const hitIndex = avarieMarks.findIndex(m => Math.hypot(m.x-p.x, m.y-p.y) < 16);
-      if(hitIndex >= 0){ avarieMarks.splice(hitIndex,1); }
-      else { avarieMarks.push(p); }
-      redrawAvarie();
-    });
-
-    $('avarieUndoBtn').addEventListener('click', ()=>{ avarieMarks.pop(); redrawAvarie(); });
-    $('avarieClearBtn').addEventListener('click', ()=>{
-      if(avarieMarks.length && !confirm('Ștergi toate semnele de avarie?')) return;
-      avarieMarks=[]; redrawAvarie();
-    });
-
-    redrawAvarie();
-
-    // expose for the print/generate step
+    // expose the blank schema for the print/generate step (always the same empty diagram —
+    // nimic completat digital aici, se desenează de mână pe hârtia tipărită)
     window.__getAvarieDataUrl = function(){
-      return avarieMarks.length ? avCanvas.toDataURL('image/png') : null;
-    };
-
-    /* police signature pad (separate from the driver's signature — never auto-filled elsewhere) */
-    const polSigCanvas = $('polSigCanvas');
-    const polSigCtx = polSigCanvas.getContext('2d');
-    polSigCtx.lineWidth=2.4; polSigCtx.lineJoin='round'; polSigCtx.lineCap='round'; polSigCtx.strokeStyle='#132043';
-    let polSigDrawing=false, polSigHasContent=false;
-    function polSigPoint(e){
-      const rect = polSigCanvas.getBoundingClientRect();
-      const sx=polSigCanvas.width/rect.width, sy=polSigCanvas.height/rect.height;
-      const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
-      const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
-      return {x:cx*sx,y:cy*sy};
-    }
-    polSigCanvas.addEventListener('pointerdown', e=>{
-      polSigCanvas.setPointerCapture(e.pointerId);
-      polSigDrawing=true; polSigHasContent=true;
-      $('polSigPlaceholder').style.display='none';
-      const p=polSigPoint(e); polSigCtx.beginPath(); polSigCtx.moveTo(p.x,p.y);
-    });
-    polSigCanvas.addEventListener('pointermove', e=>{
-      if(!polSigDrawing) return;
-      const p=polSigPoint(e); polSigCtx.lineTo(p.x,p.y); polSigCtx.stroke();
-    });
-    window.addEventListener('pointerup', ()=>{ polSigDrawing=false; });
-    $('clearPolSigBtn').addEventListener('click', ()=>{
-      polSigCtx.clearRect(0,0,polSigCanvas.width,polSigCanvas.height);
-      polSigHasContent=false; $('polSigPlaceholder').style.display='flex';
-    });
-    window.__getPolSigDataUrl = function(){
-      return polSigHasContent ? polSigCanvas.toDataURL('image/png') : null;
+      return avCanvas.toDataURL('image/png');
     };
   })();
 
@@ -1405,7 +1313,7 @@
       '</div>';
   }
 
-  function buildPage2(schitaDataUrl, sigDataUrl, avarieDataUrl, polSigDataUrl){
+  function buildPage2(schitaDataUrl, sigDataUrl, avarieDataUrl){
     const zoneSel = checkedList('zona');
     const caracteristicaSel = checkedList('caracteristica');
     return '<div class="a4-page">'+
@@ -1427,7 +1335,7 @@
       '<div class="boxed" style="margin-top:12px;"><b>POZIȚIONAREA ZONEI AVARIATE</b> <span class="sectionNote">(zonă completată de către polițist)</span>'+
       '<div class="avarieBox">'+(avarieDataUrl? '<img src="'+avarieDataUrl+'">' : '<span style="color:#999;font-size:11px;">(nemarcată)</span>')+'</div>'+
       '</div>'+
-      '<div class="pageFoot" style="margin-top:14px;"><span>Grad '+b(val('f_pol_grad'))+' Nume '+b(val('f_pol_nume'))+' Prenume '+b(val('f_pol_prenume'))+'</span><span>Semnătura '+(polSigDataUrl?'<img class="polSigImg" src="'+polSigDataUrl+'">':b('','wide'))+'</span></div>'+
+      '<div class="pageFoot" style="margin-top:14px;"><span>Grad '+b('','xw')+' Nume '+b('','xw')+' Prenume '+b('','xw')+'</span><span>Semnătura '+b('','wide')+'</span></div>'+
       '</div>';
   }
 
@@ -1443,9 +1351,8 @@
     const sigDataUrl = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
     const schitaDataUrl = scene.length ? canvas.toDataURL('image/png') : null;
     const avarieDataUrl = window.__getAvarieDataUrl ? window.__getAvarieDataUrl() : null;
-    const polSigDataUrl = window.__getPolSigDataUrl ? window.__getPolSigDataUrl() : null;
     const out = $('printOutput');
-    out.innerHTML = buildPage1(sigDataUrl) + buildPage2(schitaDataUrl, sigDataUrl, avarieDataUrl, polSigDataUrl);
+    out.innerHTML = buildPage1(sigDataUrl) + buildPage2(schitaDataUrl, sigDataUrl, avarieDataUrl);
     $('previewOverlay').classList.add('show');
     window.scrollTo(0,0);
   });
