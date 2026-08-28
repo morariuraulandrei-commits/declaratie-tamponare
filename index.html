@@ -75,6 +75,8 @@
   .canvasBox{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;touch-action:none;}
   canvas{display:block;width:100%;touch-action:none;background:#fff;}
   .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+  .toolbarLabel{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 2px;}
+  .toolbarLabel:first-child{margin-top:2px;}
   .toolbtn{border:1px solid var(--line);background:#fbfcfe;border-radius:9px;padding:8px 9px;font-size:11.5px;
     cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;color:var(--ink);}
   .toolbtn svg{width:22px;height:22px;}
@@ -375,18 +377,39 @@
       <h2><span class="num">8</span> Schița accidentului</h2>
       <div class="sub">Alege un vehicul din listă, apinge pe schiță pentru a-l plasa, apoi trage-l în poziție. Folosește creionul pentru a desena drumul, iar săgeata pentru direcția de deplasare.</div>
 
+      <div id="schitaTools">
+      <div class="toolbarLabel">Vehicule</div>
       <div class="toolbar" id="vehicleToolbar">
         <button type="button" class="toolbtn" data-stamp="car" title="Autoturism">🚗<span>Mașină</span></button>
         <button type="button" class="toolbtn" data-stamp="taxi" title="Taxi">🚕<span>Taxi</span></button>
         <button type="button" class="toolbtn" data-stamp="suv" title="SUV / Van">🚙<span>SUV/Van</span></button>
         <button type="button" class="toolbtn" data-stamp="truck" title="Camion">🚚<span>Camion</span></button>
         <button type="button" class="toolbtn" data-stamp="bus" title="Autobuz">🚌<span>Autobuz</span></button>
+        <button type="button" class="toolbtn" data-stamp="tram" title="Tramvai">🚊<span>Tramvai</span></button>
         <button type="button" class="toolbtn" data-stamp="motorcycle" title="Motocicletă">🏍️<span>Moto</span></button>
         <button type="button" class="toolbtn" data-stamp="bicycle" title="Bicicletă">🚲<span>Bicicletă</span></button>
         <button type="button" class="toolbtn" data-stamp="scooter" title="Trotinetă">🛴<span>Trotinetă</span></button>
         <button type="button" class="toolbtn" data-stamp="tractor" title="Tractor">🚜<span>Tractor</span></button>
         <button type="button" class="toolbtn" data-stamp="pedestrian" title="Pieton">🚶<span>Pieton</span></button>
-        <div class="toolbar-divider"></div>
+      </div>
+
+      <div class="toolbarLabel">Obiecte de stradă și clădiri</div>
+      <div class="toolbar" id="urbanToolbar">
+        <button type="button" class="toolbtn" data-stamp="tree" title="Copac">🌳<span>Copac</span></button>
+        <button type="button" class="toolbtn" data-stamp="house" title="Casă">🏠<span>Casă</span></button>
+        <button type="button" class="toolbtn" data-stamp="block" title="Bloc">🏢<span>Bloc</span></button>
+        <button type="button" class="toolbtn" data-stamp="fence" title="Gard">🚧<span>Gard</span></button>
+        <button type="button" class="toolbtn" data-stamp="bin" title="Tomberon">🗑️<span>Tomberon</span></button>
+        <button type="button" class="toolbtn" data-stamp="trafficlight" title="Semafor">🚦<span>Semafor</span></button>
+        <button type="button" class="toolbtn" data-stamp="sign" title="Indicator rutier">🛑<span>Indicator</span></button>
+        <button type="button" class="toolbtn" data-stamp="lamppost" title="Stâlp iluminat">💡<span>Stâlp</span></button>
+        <button type="button" class="toolbtn" data-stamp="crosswalk" title="Trecere de pietoni">🚸<span>Trecere</span></button>
+        <button type="button" class="toolbtn" data-stamp="bench" title="Bancă">🪑<span>Bancă</span></button>
+        <button type="button" class="toolbtn" data-stamp="parking" title="Loc de parcare">🅿️<span>Parcare</span></button>
+      </div>
+
+      <div class="toolbarLabel">Instrumente desen</div>
+      <div class="toolbar" id="drawToolbar">
         <button type="button" class="toolbtn" data-tool="pen" title="Creion">✏️<span>Creion</span></button>
         <button type="button" class="toolbtn" data-tool="arrow" title="Săgeată direcție">➡️<span>Săgeată</span></button>
         <button type="button" class="toolbtn" data-tool="text" title="Text">🔤<span>Text</span></button>
@@ -394,6 +417,7 @@
         <div class="toolbar-divider"></div>
         <button type="button" class="toolbtn" id="undoBtn" title="Anulează ultima acțiune">↩️<span>Anulează</span></button>
         <button type="button" class="toolbtn" id="clearBtn" title="Golește schița">🗑️<span>Golește</span></button>
+      </div>
       </div>
 
       <div class="canvasBox"><canvas id="schitaCanvas" width="900" height="520"></canvas></div>
@@ -644,6 +668,97 @@
         ctx.moveTo(0,-3); ctx.lineTo(9,3); ctx.moveTo(0,8); ctx.lineTo(-8,18); ctx.moveTo(0,8); ctx.lineTo(8,18); ctx.stroke();
         break;
       }
+      case 'tram': {
+        roundRect(-46,-15,92,30,6); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,-15); ctx.lineTo(0,15); ctx.stroke();
+        for(let i=-36;i<0;i+=13){ ctx.beginPath(); ctx.moveTo(i,-15); ctx.lineTo(i,-9); ctx.stroke(); ctx.beginPath(); ctx.moveTo(i,15); ctx.lineTo(i,9); ctx.stroke(); }
+        for(let i=10;i<44;i+=13){ ctx.beginPath(); ctx.moveTo(i,-15); ctx.lineTo(i,-9); ctx.stroke(); ctx.beginPath(); ctx.moveTo(i,15); ctx.lineTo(i,9); ctx.stroke(); }
+        ctx.beginPath(); ctx.moveTo(-10,-15); ctx.lineTo(-4,-22); ctx.lineTo(6,-22); ctx.lineTo(12,-15); ctx.stroke();
+        wheels([[-30,-15],[-30,15],[30,-15],[30,15]],4);
+        break;
+      }
+      case 'tree': {
+        ctx.fillStyle='#4c9a5b'; ctx.beginPath(); ctx.arc(0,0,16,0,7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#3f8a4e'; ctx.beginPath(); ctx.arc(-5,-5,6,0,7); ctx.fill();
+        ctx.beginPath(); ctx.arc(6,4,5,0,7); ctx.fill();
+        break;
+      }
+      case 'house': {
+        ctx.fillStyle='#f1d9b5';
+        roundRect(-22,-16,44,32,3); ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-22,-16); ctx.lineTo(0,0); ctx.moveTo(22,-16); ctx.lineTo(0,0);
+        ctx.moveTo(-22,16); ctx.lineTo(0,0); ctx.moveTo(22,16); ctx.lineTo(0,0);
+        ctx.stroke();
+        break;
+      }
+      case 'block': {
+        ctx.fillStyle='#c7ccd6';
+        roundRect(-25,-35,50,70,2); ctx.fill(); ctx.stroke();
+        ctx.lineWidth=1.2;
+        for(let i=-15;i<=15;i+=10){ ctx.beginPath(); ctx.moveTo(i,-35); ctx.lineTo(i,35); ctx.stroke(); }
+        for(let j=-25;j<=25;j+=14){ ctx.beginPath(); ctx.moveTo(-25,j); ctx.lineTo(25,j); ctx.stroke(); }
+        break;
+      }
+      case 'fence': {
+        ctx.fillStyle='#c9a36a';
+        roundRect(-25,-4,50,8,1); ctx.fill(); ctx.stroke();
+        for(let i=-21;i<=21;i+=8){ ctx.beginPath(); ctx.moveTo(i,-4); ctx.lineTo(i,4); ctx.stroke(); }
+        break;
+      }
+      case 'bin': {
+        ctx.fillStyle='#5b6b7a';
+        ctx.beginPath(); ctx.arc(0,0,9,0,7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0,0,5,0,7); ctx.stroke();
+        break;
+      }
+      case 'trafficlight': {
+        ctx.beginPath(); ctx.moveTo(0,12); ctx.lineTo(0,-8); ctx.stroke();
+        ctx.fillStyle='#20242a'; roundRect(-5,-26,10,20,3); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#e2413c'; ctx.beginPath(); ctx.arc(0,-21,2.6,0,7); ctx.fill();
+        ctx.fillStyle='#e8b93c'; ctx.beginPath(); ctx.arc(0,-16,2.6,0,7); ctx.fill();
+        ctx.fillStyle='#3ea55a'; ctx.beginPath(); ctx.arc(0,-11,2.6,0,7); ctx.fill();
+        break;
+      }
+      case 'sign': {
+        ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,-6); ctx.stroke();
+        ctx.fillStyle='#d1352c';
+        ctx.beginPath();
+        for(let k=0;k<8;k++){ const ang=Math.PI/8+k*Math.PI/4; const px=9*Math.cos(ang); const py=-15+9*Math.sin(ang);
+          if(k===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        break;
+      }
+      case 'lamppost': {
+        ctx.fillStyle='#33383f'; ctx.beginPath(); ctx.arc(0,10,3,0,7); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(0,10); ctx.lineTo(0,-16); ctx.stroke();
+        ctx.fillStyle='#f4d35e'; ctx.beginPath(); ctx.arc(0,-19,4,0,7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle='#e8c34a';
+        for(let k=0;k<6;k++){ const ang=k*Math.PI/3; ctx.beginPath();
+          ctx.moveTo(6*Math.cos(ang),-19+6*Math.sin(ang)); ctx.lineTo(10*Math.cos(ang),-19+10*Math.sin(ang)); ctx.stroke(); }
+        ctx.strokeStyle='#1b2430';
+        break;
+      }
+      case 'crosswalk': {
+        ctx.fillStyle='#ffffff';
+        roundRect(-25,-13,50,26,2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#2b2f36';
+        for(let i=-21;i<21;i+=8){ ctx.fillRect(i,-11,4,22); }
+        break;
+      }
+      case 'bench': {
+        ctx.fillStyle='#8a5a2b';
+        roundRect(-14,-5,28,10,2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-14,-5); ctx.lineTo(-14,-11); ctx.moveTo(14,-5); ctx.lineTo(14,-11); ctx.stroke();
+        break;
+      }
+      case 'parking': {
+        ctx.fillStyle='#2f6fed'; ctx.globalAlpha=0.15;
+        roundRect(-14,-16,28,32,2); ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+        ctx.fillStyle='#2f6fed'; ctx.font='bold 16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('P',0,1);
+        break;
+      }
     }
     ctx.restore();
     if(o.label){
@@ -663,8 +778,10 @@
     ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
   }
   function bboxHalf(o){
-    const base = {car:{w:34,h:19},taxi:{w:34,h:19},suv:{w:34,h:19},truck:{w:42,h:20},bus:{w:46,h:19},
-      motorcycle:{w:20,h:13},bicycle:{w:18,h:12},scooter:{w:18,h:18},tractor:{w:26,h:26},pedestrian:{w:12,h:22}};
+    const base = {car:{w:34,h:19},taxi:{w:34,h:19},suv:{w:34,h:19},truck:{w:42,h:20},bus:{w:46,h:19},tram:{w:50,h:19},
+      motorcycle:{w:20,h:13},bicycle:{w:18,h:12},scooter:{w:18,h:18},tractor:{w:26,h:26},pedestrian:{w:12,h:22},
+      tree:{w:18,h:18},house:{w:24,h:18},block:{w:27,h:37},fence:{w:27,h:6},bin:{w:11,h:11},trafficlight:{w:8,h:28},
+      sign:{w:10,h:22},lamppost:{w:6,h:26},crosswalk:{w:27,h:15},bench:{w:16,h:8},parking:{w:16,h:18}};
     const bb = base[o.stamp]||{w:30,h:18};
     return {w:bb.w*o.scale, h:bb.h*o.scale};
   }
@@ -726,7 +843,7 @@
   function setTool(tool, stamp){
     currentTool = tool; currentStamp = stamp||null;
     selectedIndex = -1;
-    document.querySelectorAll('#vehicleToolbar .toolbtn').forEach(btn=>btn.classList.remove('active'));
+    document.querySelectorAll('#schitaTools .toolbtn').forEach(btn=>btn.classList.remove('active'));
     let activeBtn;
     if(tool==='stamp') activeBtn = document.querySelector('[data-stamp="'+stamp+'"]');
     else activeBtn = document.querySelector('[data-tool="'+tool+'"]');
@@ -737,15 +854,17 @@
     redraw();
   }
   function stampLabel(s){
-    const m={car:'mașină',taxi:'taxi',suv:'SUV/Van',truck:'camion',bus:'autobuz',motorcycle:'motocicletă',
-      bicycle:'bicicletă',scooter:'trotinetă',tractor:'tractor',pedestrian:'pieton'};
+    const m={car:'mașină',taxi:'taxi',suv:'SUV/Van',truck:'camion',bus:'autobuz',tram:'tramvai',motorcycle:'motocicletă',
+      bicycle:'bicicletă',scooter:'trotinetă',tractor:'tractor',pedestrian:'pieton',
+      tree:'copac',house:'casă',block:'bloc',fence:'gard',bin:'tomberon',trafficlight:'semafor',
+      sign:'indicator rutier',lamppost:'stâlp iluminat',crosswalk:'trecere de pietoni',bench:'bancă',parking:'loc de parcare'};
     return m[s]||s;
   }
 
-  document.querySelectorAll('#vehicleToolbar [data-stamp]').forEach(btn=>{
+  document.querySelectorAll('#schitaTools [data-stamp]').forEach(btn=>{
     btn.addEventListener('click',()=> setTool('stamp', btn.getAttribute('data-stamp')));
   });
-  document.querySelectorAll('#vehicleToolbar [data-tool]').forEach(btn=>{
+  document.querySelectorAll('#schitaTools [data-tool]').forEach(btn=>{
     btn.addEventListener('click',()=> setTool(btn.getAttribute('data-tool')));
   });
   setTool('select');
@@ -760,7 +879,7 @@
       scene.push(obj);
       selectedIndex = scene.length-1;
       currentTool='select'; currentStamp=null;
-      document.querySelectorAll('#vehicleToolbar .toolbtn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('#schitaTools .toolbtn').forEach(b=>b.classList.remove('active'));
       document.querySelector('[data-tool="select"]').classList.add('active');
       $('toolHint').innerHTML = 'Instrument activ: <b>Selectează / mută</b>';
       $('selToolbar').style.display='flex';
