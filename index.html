@@ -43,6 +43,22 @@
   .ackRow input{width:19px;height:19px;flex:none;margin-top:1px;accent-color:#c07800;}
   .ackRow span{font-size:13px;font-weight:600;color:#5a3a00;line-height:1.4;}
 
+  .stepBadge{display:inline-flex;align-items:center;gap:6px;background:#0e2a63;color:#fff;font-size:11.5px;
+    font-weight:700;letter-spacing:.3px;padding:5px 11px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;}
+  #introPhase{position:relative;}
+  #continueBtn{width:100%;margin-top:14px;}
+  #continueHint{font-size:12.5px;color:var(--muted);margin-top:8px;text-align:center;line-height:1.4;}
+  #continueHint.warn{color:#c0392b;font-weight:600;}
+  .introDone{display:none;align-items:center;gap:8px;background:#e8f7ee;border:1px solid #8fd6ac;
+    color:#1e7a45;font-size:13px;font-weight:700;border-radius:10px;padding:10px 12px;margin-top:14px;}
+  .introDone.show{display:flex;}
+
+  #mainSections{transition:opacity .35s ease;}
+  #mainSections.locked{opacity:.4;filter:grayscale(.35);pointer-events:none;user-select:none;}
+  #lockNotice{display:none;align-items:center;gap:10px;background:#eef2fb;border:1.5px dashed #9db4e0;
+    color:#33415c;font-size:13px;font-weight:600;border-radius:12px;padding:14px 16px;margin:14px 0;}
+  #mainSections.locked #lockNotice{display:flex;}
+
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
   .grid.c3{grid-template-columns:1fr 1fr 1fr;}
   .grid.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
@@ -172,7 +188,7 @@
 <header class="top">
   <div class="inner">
     <h1>📋 Declarație tamponare / accident rutier</h1>
-    <p>Completează pe telefon, tabletă sau laptop — apoi generează declarația gata de tipărit în format A4, exact ca formularul de poliție. Semnezi o singură dată, la final.</p>
+    <p>Completează pe telefon, tabletă sau laptop — apoi generează declarația gata de tipărit în format A4, exact ca formularul de poliție. Mai întâi citești și semnezi declarația legală, abia apoi completezi datele accidentului. Semnezi o singură dată.</p>
     <div class="progress" id="progressBar"></div>
   </div>
 </header>
@@ -180,6 +196,52 @@
 <div class="wrap">
 
   <form id="declForm" onsubmit="return false;">
+
+    <div id="introPhase">
+
+    <!-- AVERTISMENT LEGAL - de citit inainte de semnare -->
+    <section class="card warnCard">
+      <span class="stepBadge">Pasul 1 · Declarația legală</span>
+      <h2 class="warnTitle">⚠️ Citește cu atenție înainte de a semna</h2>
+      <div class="sub" style="color:#7a3b00;">Acesta este textul care apare chiar sub titlul „DECLARAȚIE" în documentul tipărit — este cea mai importantă parte: dacă declari fals, răspunzi penal.</div>
+      <div class="warnBox">
+        (Declararea necorespunzătoare a adevărului sau inducerea în eroare a organului de poliție cu privire la accident, în scopul obținerii de foloase materiale necuvenite, se pedepsește în conformitate cu prevederile Codului penal, art. 326 – falsul în declarații, se pedepsește cu închisoare de la 3 luni la 2 ani), (Codul penal art. 273 - mărturia mincinoasă, se pedepsește cu închisoare de la 6 luni la 3 ani), (Codul penal art. 245 - înșelăciunea privind asigurările, se pedepsește cu închisoarea de la unu la 5 ani);
+        <br><br>
+        Conform art. 79 alin 1 din O.U.G. 195/2002 republicată și modificată, sunteți obligat să vă prezentați la unitatea de poliție pe raza căreia s-a produs accidentul pentru soluționarea evenimentului rutier în termen de cel mult 24 de ore de la producerea acestuia.
+      </div>
+      <label class="ackRow">
+        <input type="checkbox" id="f_ack_legal">
+        <span>Am citit și am luat la cunoștință de conținutul de mai sus, pe propria răspundere.</span>
+      </label>
+    </section>
+
+    <!-- SEMNATURA (mutata la inceput) -->
+    <section class="card">
+      <span class="stepBadge">Pasul 1 · Semnătura ta</span>
+      <h2>Semnează declarația</h2>
+      <div class="sub">Desenează semnătura cu degetul sau mouse-ul. Va fi folosită automat în toate locurile din declarație unde apare "Semnătura" ta (nu și cele destinate polițistului).</div>
+      <div class="sigWrap">
+        <canvas id="sigCanvas" width="860" height="180"></canvas>
+        <div class="sigPlaceholder" id="sigPlaceholder">semnează aici</div>
+      </div>
+      <div class="grid c3" style="margin-top:10px;">
+        <div class="field"><label>Data semnării</label><input type="date" id="f_data_semnare"></div>
+        <div class="field"><label>Ora completării declarației</label><input type="time" id="f_ora_semnare"></div>
+        <div class="field" style="justify-content:flex-end;">
+          <button type="button" class="miniBtn" id="clearSigBtn" style="width:100%;">Șterge semnătura</button>
+        </div>
+      </div>
+      <div class="sub" style="margin-top:10px;margin-bottom:0;">Data, ora și semnătura de mai sus vor apărea automat peste tot în declarație unde este nevoie de ele — inclusiv la rândul <i>„Am luat la cunoștință semnătura ___ data ___ ora ___"</i> de sub textul legal, chiar sub titlul DECLARAȚIE.</div>
+
+      <button type="button" class="btn primary" id="continueBtn">Continuă — completează declarația →</button>
+      <div id="continueHint">Bifează avertismentul de mai sus și semnează pentru a continua.</div>
+      <div class="introDone" id="introDoneMsg">✓ Declarație citită și semnată. Poți edita oricând mai sus — completează acum datele accidentului mai jos.</div>
+    </section>
+
+    </div><!-- /introPhase -->
+
+    <div id="mainSections" class="locked">
+    <div id="lockNotice">🔒 Citește avertismentul legal și semnează mai sus (Pasul 1) pentru a debloca restul declarației.</div>
 
     <!-- 1. DATE GENERALE -->
     <section class="card">
@@ -441,42 +503,9 @@
       <div class="hint" id="toolHint">Instrument activ: <b>Selectează / mută</b></div>
     </section>
 
-    <!-- AVERTISMENT LEGAL - de citit inainte de semnare -->
-    <section class="card warnCard">
-      <h2 class="warnTitle">⚠️ Citește cu atenție înainte de a semna</h2>
-      <div class="sub" style="color:#7a3b00;">Acesta este textul care apare chiar sub titlul „DECLARAȚIE" în documentul tipărit — este cea mai importantă parte: dacă declari fals, răspunzi penal.</div>
-      <div class="warnBox">
-        (Declararea necorespunzătoare a adevărului sau inducerea în eroare a organului de poliție cu privire la accident, în scopul obținerii de foloase materiale necuvenite, se pedepsește în conformitate cu prevederile Codului penal, art. 326 – falsul în declarații, se pedepsește cu închisoare de la 3 luni la 2 ani), (Codul penal art. 273 - mărturia mincinoasă, se pedepsește cu închisoare de la 6 luni la 3 ani), (Codul penal art. 245 - înșelăciunea privind asigurările, se pedepsește cu închisoarea de la unu la 5 ani);
-        <br><br>
-        Conform art. 79 alin 1 din O.U.G. 195/2002 republicată și modificată, sunteți obligat să vă prezentați la unitatea de poliție pe raza căreia s-a produs accidentul pentru soluționarea evenimentului rutier în termen de cel mult 24 de ore de la producerea acestuia.
-      </div>
-      <label class="ackRow">
-        <input type="checkbox" id="f_ack_legal">
-        <span>Am citit și am luat la cunoștință de conținutul de mai sus, pe propria răspundere.</span>
-      </label>
-    </section>
-
-    <!-- 9. SEMNATURA -->
+    <!-- 9. ZONA AVARIATA (optional) -->
     <section class="card">
-      <h2><span class="num">9</span> Semnătura ta</h2>
-      <div class="sub">Desenează semnătura cu degetul sau mouse-ul. Va fi folosită automat în toate locurile din declarație unde apare "Semnătura" ta (nu și cele destinate polițistului).</div>
-      <div class="sigWrap">
-        <canvas id="sigCanvas" width="860" height="180"></canvas>
-        <div class="sigPlaceholder" id="sigPlaceholder">semnează aici</div>
-      </div>
-      <div class="grid c3" style="margin-top:10px;">
-        <div class="field"><label>Data semnării</label><input type="date" id="f_data_semnare"></div>
-        <div class="field"><label>Ora completării declarației</label><input type="time" id="f_ora_semnare"></div>
-        <div class="field" style="justify-content:flex-end;">
-          <button type="button" class="miniBtn" id="clearSigBtn" style="width:100%;">Șterge semnătura</button>
-        </div>
-      </div>
-      <div class="sub" style="margin-top:10px;margin-bottom:0;">Data, ora și semnătura de mai sus vor apărea automat peste tot în declarație unde este nevoie de ele — inclusiv la rândul <i>„Am luat la cunoștință semnătura ___ data ___ ora ___"</i> de sub textul legal, chiar sub titlul DECLARAȚIE.</div>
-    </section>
-
-    <!-- 10. ZONA AVARIATA (optional) -->
-    <section class="card">
-      <h2><span class="num">10</span> Zonă avariată <span style="font-weight:400;color:var(--muted);font-size:12px;">(opțional — de regulă se completează de polițist)</span></h2>
+      <h2><span class="num">9</span> Zonă avariată <span style="font-weight:400;color:var(--muted);font-size:12px;">(opțional — de regulă se completează de polițist)</span></h2>
       <div class="sub">Poți bifa orientativ elementele avariate, pentru evidența ta.</div>
       <div class="chipset" id="grp_zone"></div>
       <label style="font-size:12px;font-weight:700;display:block;margin:14px 0 6px;">Caracteristica avariei</label>
@@ -489,6 +518,8 @@
         <label class="chip"><input type="checkbox" name="caracteristica" value="Lipsă"><span>Lipsă</span></label>
       </div>
     </section>
+
+    </div><!-- /mainSections -->
 
   </form>
 </div>
@@ -1009,10 +1040,60 @@
     if(!sigDrawing) return;
     const p=sigPoint(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke();
   });
-  window.addEventListener('pointerup', ()=>{ sigDrawing=false; });
+  window.addEventListener('pointerup', ()=>{ sigDrawing=false; updateContinueBtn(); });
   $('clearSigBtn').addEventListener('click',()=>{
     sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
     sigHasContent=false; $('sigPlaceholder').style.display='flex';
+    updateContinueBtn();
+    // re-lock the rest of the declaration if the signature is erased after unlocking
+    $('mainSections').classList.add('locked');
+    $('introDoneMsg').classList.remove('show');
+    $('continueBtn').style.display='';
+  });
+
+  /* =====================================================================
+     PASUL 1 → PASUL 2 UNLOCK (Declarație + semnătură întâi, apoi restul)
+  ===================================================================== */
+  const mainSections = $('mainSections');
+  const continueBtn = $('continueBtn');
+  const continueHint = $('continueHint');
+  const introDoneMsg = $('introDoneMsg');
+
+  function updateContinueBtn(){
+    const ok = $('f_ack_legal').checked && sigHasContent;
+    continueBtn.disabled = false; // keep clickable so we can explain what's missing
+    continueHint.classList.remove('warn');
+    if(ok){
+      continueHint.textContent = 'Gata! Apasă pentru a debloca restul declarației.';
+    } else if(!$('f_ack_legal').checked && !sigHasContent){
+      continueHint.textContent = 'Bifează avertismentul de mai sus și semnează pentru a continua.';
+    } else if(!$('f_ack_legal').checked){
+      continueHint.textContent = 'Bifează avertismentul legal de mai sus pentru a continua.';
+    } else {
+      continueHint.textContent = 'Semnează mai sus pentru a continua.';
+    }
+  }
+  $('f_ack_legal').addEventListener('change', updateContinueBtn);
+  updateContinueBtn();
+
+  continueBtn.addEventListener('click', ()=>{
+    if(!$('f_ack_legal').checked || !sigHasContent){
+      continueHint.classList.add('warn');
+      if(!$('f_ack_legal').checked){
+        $('f_ack_legal').closest('.warnCard').style.borderColor = '#c0392b';
+        $('f_ack_legal').closest('.warnCard').style.boxShadow = '0 0 0 3px rgba(192,57,43,.15)';
+        setTimeout(()=>{ $('f_ack_legal').closest('.warnCard').style.borderColor=''; $('f_ack_legal').closest('.warnCard').style.boxShadow=''; }, 2200);
+      }
+      if(!sigHasContent){
+        sigCanvas.style.outline='2px solid #c0392b'; sigCanvas.style.outlineOffset='2px';
+        setTimeout(()=>{ sigCanvas.style.outline=''; sigCanvas.style.outlineOffset=''; }, 2200);
+      }
+      return;
+    }
+    mainSections.classList.remove('locked');
+    continueBtn.style.display='none';
+    introDoneMsg.classList.add('show');
+    mainSections.scrollIntoView({behavior:'smooth', block:'start'});
   });
 
   /* =====================================================================
