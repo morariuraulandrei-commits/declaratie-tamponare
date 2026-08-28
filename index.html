@@ -190,9 +190,67 @@
       page-break-after:always;}
     @page{size:A4;margin:10mm;}
   }
+
+  /* ---------- beta / privacy notice ---------- */
+  #betaModal{position:fixed;inset:0;background:rgba(15,20,30,.72);z-index:200;display:flex;
+    align-items:center;justify-content:center;padding:16px;}
+  #betaModal.hide{display:none;}
+  .betaBox{background:#fff;border-radius:16px;max-width:480px;width:100%;padding:22px 22px 20px;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);max-height:92vh;overflow:auto;}
+  .betaBadge{display:inline-flex;align-items:center;gap:6px;background:#fff2d9;color:#8a4b00;
+    font-size:11.5px;font-weight:800;letter-spacing:.4px;padding:5px 11px;border-radius:20px;
+    text-transform:uppercase;margin-bottom:10px;}
+  .betaBox h2{font-size:17px;margin:0 0 8px;}
+  .betaBox p{font-size:13.5px;line-height:1.55;color:var(--ink);margin:0 0 10px;}
+  .betaBox ul{margin:0 0 12px;padding-left:20px;font-size:13px;line-height:1.6;color:var(--ink);}
+  .betaBox li{margin-bottom:4px;}
+  .betaAckRow{display:flex;align-items:flex-start;gap:9px;padding:11px 12px;background:#fff2d9;
+    border-radius:10px;cursor:pointer;margin-top:6px;}
+  .betaAckRow input{width:19px;height:19px;flex:none;margin-top:1px;accent-color:#c07800;}
+  .betaAckRow span{font-size:13px;font-weight:600;color:#5a3a00;line-height:1.4;}
+  #betaContinueBtn{width:100%;margin-top:14px;}
+  #betaContinueBtn:disabled{opacity:.5;cursor:default;}
+
+  .privacyBanner{display:flex;align-items:flex-start;gap:9px;background:#eef2fb;border:1px solid #c7d3ec;
+    color:#2a3a5c;font-size:12.5px;line-height:1.5;border-radius:12px;padding:11px 13px;margin:0 0 14px;}
+  .privacyBanner b{color:#16336b;}
 </style>
 </head>
 <body>
+
+<div id="betaModal">
+  <div class="betaBox">
+    <span class="betaBadge">⚠️ Versiune TEST / BETA</span>
+    <h2>Aceasta este o aplicație de test</h2>
+    <p>Nu este un formular oficial al poliției și nu ține locul declarației scrise pe hârtie predate agentului de poliție. Este o versiune beta, aflată în testare.</p>
+    <ul>
+      <li>Introdu doar <b>date fictive</b> (nume, CNP, numere de înmatriculare inventate) — nu date reale, ale tale sau ale altor persoane, cât timp testezi aplicația.</li>
+      <li>Toate datele completate rămân <b>doar în browserul tău</b>, pe acest dispozitiv. Nu sunt trimise, salvate sau copiate pe niciun server — aplicația nu are bază de date.</li>
+      <li>Datele dispar automat când închizi sau reîncarci pagina — nimic nu este reținut.</li>
+    </ul>
+    <label class="betaAckRow">
+      <input type="checkbox" id="beta_ack_fictive">
+      <span>Am înțeles: este o versiune de test și voi introduce doar date fictive.</span>
+    </label>
+    <button type="button" class="btn primary" id="betaContinueBtn" disabled>Am înțeles, continuă</button>
+  </div>
+</div>
+<script>
+(function(){
+  var modal = document.getElementById('betaModal');
+  var ack = document.getElementById('beta_ack_fictive');
+  var btn = document.getElementById('betaContinueBtn');
+  document.body.style.overflow = 'hidden';
+  function sync(){ btn.disabled = !ack.checked; }
+  ack.addEventListener('change', sync);
+  btn.addEventListener('click', function(){
+    if(!ack.checked) return;
+    modal.classList.add('hide');
+    document.body.style.overflow = '';
+  });
+  sync();
+})();
+</script>
 
 <header class="top">
   <div class="inner">
@@ -203,6 +261,10 @@
 </header>
 
 <div class="wrap">
+
+  <div class="privacyBanner">
+    🔒 <span><b>Aplicație TEST / BETA — folosește doar date fictive.</b> Nimic din ce completezi nu este trimis sau salvat pe vreun server: totul rămâne local, în acest browser, și dispare la închiderea sau reîmprospătarea paginii. Nu există cont, bază de date sau urmărire (cookie-uri/analytics).</span>
+  </div>
 
   <form id="declForm" onsubmit="return false;">
 
