@@ -34,6 +34,15 @@
     font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
   .card .sub{color:var(--muted);font-size:12.5px;margin:2px 0 12px;line-height:1.45;}
 
+  .warnCard{background:#fff8ec;border:1.5px solid #f0b23a;}
+  .warnTitle{color:#8a4b00;font-size:16px;}
+  .warnBox{background:#fffefb;border:1px solid #f0c878;border-radius:10px;padding:12px 14px;
+    font-size:13px;line-height:1.55;color:#4a3200;}
+  .ackRow{display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:10px 12px;
+    background:#fff2d9;border-radius:10px;cursor:pointer;}
+  .ackRow input{width:19px;height:19px;flex:none;margin-top:1px;accent-color:#c07800;}
+  .ackRow span{font-size:13px;font-weight:600;color:#5a3a00;line-height:1.4;}
+
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
   .grid.c3{grid-template-columns:1fr 1fr 1fr;}
   .grid.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
@@ -430,6 +439,21 @@
         <button type="button" id="deleteSelBtn" style="color:#c0392b;">🗑️ Șterge selecția</button>
       </div>
       <div class="hint" id="toolHint">Instrument activ: <b>Selectează / mută</b></div>
+    </section>
+
+    <!-- AVERTISMENT LEGAL - de citit inainte de semnare -->
+    <section class="card warnCard">
+      <h2 class="warnTitle">⚠️ Citește cu atenție înainte de a semna</h2>
+      <div class="sub" style="color:#7a3b00;">Acesta este textul care apare chiar sub titlul „DECLARAȚIE" în documentul tipărit — este cea mai importantă parte: dacă declari fals, răspunzi penal.</div>
+      <div class="warnBox">
+        (Declararea necorespunzătoare a adevărului sau inducerea în eroare a organului de poliție cu privire la accident, în scopul obținerii de foloase materiale necuvenite, se pedepsește în conformitate cu prevederile Codului penal, art. 326 – falsul în declarații, se pedepsește cu închisoare de la 3 luni la 2 ani), (Codul penal art. 273 - mărturia mincinoasă, se pedepsește cu închisoare de la 6 luni la 3 ani), (Codul penal art. 245 - înșelăciunea privind asigurările, se pedepsește cu închisoarea de la unu la 5 ani);
+        <br><br>
+        Conform art. 79 alin 1 din O.U.G. 195/2002 republicată și modificată, sunteți obligat să vă prezentați la unitatea de poliție pe raza căreia s-a produs accidentul pentru soluționarea evenimentului rutier în termen de cel mult 24 de ore de la producerea acestuia.
+      </div>
+      <label class="ackRow">
+        <input type="checkbox" id="f_ack_legal">
+        <span>Am citit și am luat la cunoștință de conținutul de mai sus, pe propria răspundere.</span>
+      </label>
     </section>
 
     <!-- 9. SEMNATURA -->
@@ -1117,6 +1141,14 @@
   }
 
   $('generateBtn').addEventListener('click', ()=>{
+    if(!$('f_ack_legal').checked){
+      $('f_ack_legal').closest('section').scrollIntoView({behavior:'smooth', block:'center'});
+      $('f_ack_legal').closest('.warnCard').style.borderColor = '#c0392b';
+      $('f_ack_legal').closest('.warnCard').style.boxShadow = '0 0 0 3px rgba(192,57,43,.15)';
+      setTimeout(()=>{ $('f_ack_legal').closest('.warnCard').style.borderColor=''; $('f_ack_legal').closest('.warnCard').style.boxShadow=''; }, 2200);
+      alert('Te rugăm să citești avertismentul legal de mai sus și să bifezi "Am citit și am luat la cunoștință" înainte de a genera și semna declarația.');
+      return;
+    }
     const sigDataUrl = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
     const schitaDataUrl = scene.length ? canvas.toDataURL('image/png') : null;
     const out = $('printOutput');
