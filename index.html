@@ -440,12 +440,14 @@
         <canvas id="sigCanvas" width="860" height="180"></canvas>
         <div class="sigPlaceholder" id="sigPlaceholder">semnează aici</div>
       </div>
-      <div class="grid" style="margin-top:10px;">
+      <div class="grid c3" style="margin-top:10px;">
         <div class="field"><label>Data semnării</label><input type="date" id="f_data_semnare"></div>
+        <div class="field"><label>Ora completării declarației</label><input type="time" id="f_ora_semnare"></div>
         <div class="field" style="justify-content:flex-end;">
           <button type="button" class="miniBtn" id="clearSigBtn" style="width:100%;">Șterge semnătura</button>
         </div>
       </div>
+      <div class="sub" style="margin-top:10px;margin-bottom:0;">Data, ora și semnătura de mai sus vor apărea automat peste tot în declarație unde este nevoie de ele — inclusiv la rândul <i>„Am luat la cunoștință semnătura ___ data ___ ora ___"</i> de sub textul legal, chiar sub titlul DECLARAȚIE.</div>
     </section>
 
     <!-- 10. ZONA AVARIATA (optional) -->
@@ -1040,7 +1042,7 @@
       '<div class="titleDecl">DECLARAȚIE</div>'+
       '<div class="legalbox">(Declararea necorespunzătoare a adevărului sau inducerea în eroare a organului de poliție cu privire la accident, în scopul obținerii de foloase materiale necuvenite, se pedepsește în conformitate cu prevederile Codului penal, art. 326 – falsul în declarații, se pedepsește cu închisoare de la 3 luni la 2 ani), (Codul penal art. 273 - mărturia mincinoasă, se pedepsește cu închisoare de la 6 luni la 3 ani), (Codul penal art. 245 - înșelăciunea privind asigurările, se pedepsește cu închisoarea de la unu la 5 ani);<br>'+
       'Conform art. 79 alin 1 din O.U.G. 195/2002 republicată și modificată, sunteți obligat să vă prezentați la unitatea de poliție pe raza căreia s-a produs accidentul pentru soluționarea evenimentului rutier în termen de cel mult 24 de ore de la producerea acestuia.<br>'+
-      '<div style="display:flex;justify-content:space-between;margin-top:4px;"><span>Am luat la cunoștință semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span><span>data '+b(fmtDate(val('f_data_semnare')))+'</span></div></div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span>Am luat la cunoștință semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span><span>data '+b(fmtDate(val('f_data_semnare')))+' ora '+b(val('f_ora_semnare'))+'</span></div></div>'+
 
       '<div class="prose">'+
       'Subsemnatul(a) '+b(val('f_nume'),'xw')+' CNP '+cnpBoxes+' cetățenie '+b(val('f_cetatenie'))+' domiciliat(ă) în '+b(val('f_domiciliu_loc'),'wide')+
@@ -1085,7 +1087,7 @@
       '<tr>'+condRow('CONDIȚII ATMOSFERICE', ['Cer senin','Cer înnorat','Soare orbitor','Ploaie','Ploaie torențială','Ninsoare','Ninsoare abundentă','Viscol','Ceață','Furtună'], atmSel, true)+'</tr>'+
       '</table>'+
 
-      '<div class="pageFoot"><span>Data '+b(fmtDate(val('f_data_semnare')))+'</span><span>Semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span></div>'+
+      '<div class="pageFoot"><span>Data '+b(fmtDate(val('f_data_semnare')))+' ora '+b(val('f_ora_semnare'))+'</span><span>Semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span></div>'+
       '<div class="footNote">Notă: În mod obligatoriu se vor completa corect toate spațiile libere din conținutul declarației. Se va bifa cu „X" căsuța corespunzătoare momentului accidentului.</div>'+
       '</div>';
   }
@@ -1097,7 +1099,7 @@
       '<div class="boxed"><b>SCHIȚA ACCIDENTULUI</b>'+
       '<div class="schitaBox">'+(schitaDataUrl? '<img src="'+schitaDataUrl+'">' : '<span style="color:#999;font-size:11px;">(schiță necompletată)</span>')+'</div>'+
       '</div>'+
-      '<div class="pageFoot"><span>Data '+b(fmtDate(val('f_data_semnare')))+'</span><span>Semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span></div>'+
+      '<div class="pageFoot"><span>Data '+b(fmtDate(val('f_data_semnare')))+' ora '+b(val('f_ora_semnare'))+'</span><span>Semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span></div>'+
 
       '<hr style="margin:12px 0;border:none;border-top:2px solid #333;">'+
 
