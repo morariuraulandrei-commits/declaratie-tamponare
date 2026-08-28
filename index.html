@@ -294,6 +294,8 @@
             <label><input type="radio" name="rca_toggle" value="nu este"><span>Nu este</span></label>
           </div>
         </div>
+        <div class="field"><label>Marca autovehiculului</label><input type="text" id="f_rca_marca" placeholder="se preia automat din secțiunea 3"></div>
+        <div class="field"><label>Nr. înmatriculare</label><input type="text" id="f_rca_nr_veh" placeholder="se preia automat din secțiunea 3"></div>
         <div class="field full"><label>Societatea de asigurări</label><input type="text" id="f_rca_societate"></div>
         <div class="field"><label>Serie poliță / carte verde</label><input type="text" id="f_rca_seria"></div>
         <div class="field"><label>Nr. poliță</label><input type="text" id="f_rca_nr"></div>
@@ -509,6 +511,16 @@
   }
   document.addEventListener('change', syncToggles);
   syncToggles();
+
+  /* ---------------- auto-fill marca/nr. înmatriculare in RCA section from sectiunea 3 (editabil manual) ---------------- */
+  function bindAutoFill(sourceId, targetId){
+    const src = $(sourceId), tgt = $(targetId);
+    if(!src || !tgt) return;
+    tgt.addEventListener('input', ()=>{ tgt.dataset.manual='1'; });
+    src.addEventListener('input', ()=>{ if(!tgt.dataset.manual){ tgt.value = src.value; } });
+  }
+  bindAutoFill('f_veh_marca','f_rca_marca');
+  bindAutoFill('f_veh_nr','f_rca_nr_veh');
 
   /* ---------------- passengers ---------------- */
   const pasageriList = $('pasageriList');
@@ -941,7 +953,7 @@
       '<div class="sigBox" style="width:34mm;">Am luat la cunoștință<br>Semnătură<br>'+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':'')+'</div>'+
       '</div>'+
 
-      '<div class="prose" style="margin-top:8px;">Autovehiculul marca '+b(val('f_veh_marca'))+' nr. de înmatriculare '+b(val('f_veh_nr'),'wide')+
+      '<div class="prose" style="margin-top:8px;">Autovehiculul marca '+b(val('f_rca_marca')||val('f_veh_marca'))+' nr. de înmatriculare '+b(val('f_rca_nr_veh')||val('f_veh_nr'),'wide')+
       ' <b>'+(rcaToggle==='nu este' ? 'nu este' : 'este')+'</b> asigurat la Societatea '+b(val('f_rca_societate'),'wide')+
       ' cu contractul de răspundere civilă obligatorie sau cartea verde, seria '+b(val('f_rca_seria'))+' nr. '+b(val('f_rca_nr'))+
       ' valabil de la '+b(fmtDate(val('f_rca_de_la')))+' până la '+b(fmtDate(val('f_rca_pana_la')))+'.<br>'+
