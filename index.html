@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Declarație tamponare / accident rutier</title>
+<style>
+  :root{
+    --bg:#f2f4f7; --card:#ffffff; --ink:#1b2430; --muted:#647089; --line:#dbe1ea;
+    --accent:#1c5df0; --accent-ink:#ffffff; --accent-soft:#e8f0ff;
+    --danger:#e0453f; --ok:#1f9d55; --chip:#eef1f6; --chip-active:#1c5df0;
+    --radius:14px; --shadow:0 1px 2px rgba(20,30,50,.06), 0 6px 20px rgba(20,30,50,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{padding-bottom:110px;}
+  h1,h2,h3{margin:0 0 4px;}
+  a{color:var(--accent);}
+  .wrap{max-width:900px;margin:0 auto;padding:14px 14px 0;}
+  header.top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0e2a63,#1c5df0);
+    color:#fff;padding:16px 14px 18px;box-shadow:var(--shadow);}
+  header.top .inner{max-width:900px;margin:0 auto;}
+  header.top h1{font-size:19px;font-weight:700;}
+  header.top p{margin:4px 0 0;font-size:12.5px;opacity:.85;line-height:1.4;}
+  .progress{display:flex;gap:4px;margin-top:12px;flex-wrap:wrap;}
+  .progress span{flex:1;min-width:14px;height:4px;border-radius:3px;background:rgba(255,255,255,.28);}
+  .progress span.done{background:#fff;}
+
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px 16px 18px;margin:14px 0;border:1px solid var(--line);}
+  .card h2{font-size:15.5px;display:flex;align-items:center;gap:8px;}
+  .card h2 .num{width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
+  .card .sub{color:var(--muted);font-size:12.5px;margin:2px 0 12px;line-height:1.45;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
+  .grid.c3{grid-template-columns:1fr 1fr 1fr;}
+  .grid.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
+  @media(max-width:560px){.grid,.grid.c3,.grid.c4{grid-template-columns:1fr 1fr;}}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:2px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.2px;}
+  input[type=text],input[type=number],input[type=date],input[type=time],input[type=tel],textarea,select{
+    border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14.5px;
+    background:#fbfcfe;color:var(--ink);font-family:inherit;width:100%;}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent);}
+  textarea{resize:vertical;min-height:80px;line-height:1.4;}
+
+  .chipset{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{position:relative;}
+  .chip input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .chip span{display:inline-flex;align-items:center;padding:7px 12px;border-radius:20px;background:var(--chip);
+    font-size:13px;color:var(--ink);border:1px solid var(--line);white-space:nowrap;user-select:none;}
+  .chip input:checked + span{background:var(--chip-active);color:#fff;border-color:var(--chip-active);font-weight:600;}
+
+  .toggle2{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--line);}
+  .toggle2 label{flex:1;text-align:center;padding:9px 6px;font-size:13px;background:#fbfcfe;cursor:pointer;position:relative;}
+  .toggle2 input{position:absolute;opacity:0;}
+  .toggle2 label.on{background:var(--accent);color:#fff;font-weight:600;}
+
+  .rowline{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .rowline:last-child{border-bottom:none;}
+  .rowline input[type=checkbox]{width:18px;height:18px;flex:none;accent-color:var(--accent);}
+  .rowline .txt{font-size:13.5px;line-height:1.4;}
+
+  .passenger-row{display:grid;grid-template-columns:1fr 140px auto;gap:8px;margin-bottom:8px;align-items:end;}
+  @media(max-width:560px){.passenger-row{grid-template-columns:1fr;}}
+  .miniBtn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;font-size:12.5px;
+    cursor:pointer;color:var(--ink);}
+  .miniBtn.remove{color:var(--danger);border-color:#f3c9c7;background:#fff5f5;}
+  .addBtn{border:1px dashed var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:9px;
+    padding:9px 12px;font-size:13px;cursor:pointer;font-weight:600;width:100%;}
+
+  .canvasBox{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;touch-action:none;}
+  canvas{display:block;width:100%;touch-action:none;background:#fff;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+  .toolbtn{border:1px solid var(--line);background:#fbfcfe;border-radius:9px;padding:8px 9px;font-size:11.5px;
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;color:var(--ink);}
+  .toolbtn svg{width:22px;height:22px;}
+  .toolbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .toolbtn.active svg{filter:brightness(0) invert(1);}
+  .toolbar-divider{width:1px;background:var(--line);margin:2px 4px;}
+  .selToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);}
+  .selToolbar button{flex:1;min-width:70px;border:1px solid var(--line);background:#fff;border-radius:9px;
+    padding:8px 6px;font-size:12px;cursor:pointer;}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:6px;}
+
+  .sigWrap{border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:none;position:relative;}
+  .sigWrap canvas{cursor:crosshair;}
+  .sigPlaceholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#c3cad6;font-size:13px;pointer-events:none;}
+
+  .actionbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:30;
+    box-shadow:0 -6px 20px rgba(20,30,50,.08);}
+  .actionbar .info{flex:1;font-size:11.5px;color:var(--muted);align-self:center;line-height:1.3;}
+  .btn{border:none;border-radius:11px;padding:13px 16px;font-size:14.5px;font-weight:700;cursor:pointer;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{background:#eef1f6;color:var(--ink);}
+
+  /* ---------- print / preview output ---------- */
+  #previewOverlay{position:fixed;inset:0;background:#20262f;z-index:100;display:none;flex-direction:column;}
+  #previewOverlay.show{display:flex;}
+  .previewTop{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#151a21;color:#fff;flex:none;}
+  .previewTop b{font-size:14px;flex:1;}
+  .previewTop button{border:none;border-radius:9px;padding:9px 13px;font-size:13px;cursor:pointer;font-weight:700;}
+  .previewScroll{flex:1;overflow:auto;padding:22px 12px;display:flex;flex-direction:column;align-items:center;gap:22px;}
+
+  .a4-page{background:#fff;width:210mm;min-height:297mm;padding:11mm 12mm;font-family:Georgia,'Times New Roman',serif;
+    color:#111;font-size:10.3px;line-height:1.5;box-shadow:0 4px 24px rgba(0,0,0,.35);flex:none;}
+  .a4-page *{box-sizing:border-box;}
+  @media(max-width:900px){.a4-page{transform:scale(0.42);transform-origin:top center;margin-bottom:-380mm;}}
+  @media(max-width:640px){.a4-page{transform:scale(0.32);margin-bottom:-410mm;}}
+
+  .ph-row{display:flex;gap:14px;margin-bottom:6px;}
+  .ph-col{flex:1;}
+  .blank{border-bottom:1px solid #333;display:inline-block;min-width:40px;padding:0 3px;font-weight:600;}
+  .blank.wide{min-width:110px;}
+  .blank.xw{min-width:180px;}
+  .kv{margin-bottom:3px;}
+  .boxed{border:1px solid #333;padding:8px 10px;border-radius:2px;}
+  .legalbox{border:1.4px solid #333;padding:8px 10px;font-size:8.6px;line-height:1.45;margin:8px 0 10px;}
+  .titleDecl{text-align:center;font-size:22px;letter-spacing:6px;font-weight:700;margin:6px 0 8px;}
+  .prose{text-align:justify;}
+  .cnpBoxes{display:inline-flex;gap:2px;vertical-align:middle;}
+  .cnpBoxes span{display:inline-block;width:12px;height:14px;border:1px solid #333;text-align:center;font-size:9px;font-weight:700;}
+  table.condTable{width:100%;border-collapse:collapse;margin:8px 0;font-size:8.6px;}
+  table.condTable td{border:1px solid #333;padding:2px 4px;vertical-align:middle;}
+  table.condTable td.grp{font-weight:700;text-align:center;background:#eee;}
+  .ckcell{display:flex;align-items:center;gap:4px;white-space:nowrap;}
+  .ckbox{display:inline-block;width:9px;height:9px;border:1px solid #333;flex:none;position:relative;}
+  .ckbox.on::after{content:'✕';position:absolute;left:-1px;top:-4px;font-size:9px;font-weight:900;}
+  .sectionNote{font-size:8px;color:#444;font-style:italic;}
+  .declList{margin:6px 0;padding:0;list-style:none;}
+  .declList li{display:flex;gap:6px;margin-bottom:3px;align-items:flex-start;}
+  .sigBox{border:1px solid #333;padding:6px 8px;font-size:8.6px;}
+  .sigImg{height:34px;display:block;}
+  .zoneGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #333;font-size:7.6px;margin:6px 0;}
+  .zoneGrid div{border:.5px solid #333;padding:2px 3px;display:flex;align-items:center;gap:3px;}
+  .schitaBox{border:1.4px solid #333;min-height:80mm;display:flex;align-items:center;justify-content:center;
+    margin:8px 0 10px;overflow:hidden;}
+  .schitaBox img{max-width:100%;max-height:80mm;}
+  .footNote{font-size:8px;border:1px solid #333;padding:6px 8px;margin-top:10px;}
+  .pageFoot{display:flex;justify-content:space-between;margin-top:10px;font-size:9.5px;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #previewOverlay, #previewOverlay *{visibility:visible;}
+    #previewOverlay{position:absolute;inset:0;background:#fff;display:block;}
+    .previewTop{display:none;}
+    .previewScroll{overflow:visible;padding:0;display:block;}
+    .a4-page{box-shadow:none;transform:none !important;margin:0 !important;width:auto;min-height:0;
+      page-break-after:always;}
+    @page{size:A4;margin:10mm;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <h1>📋 Declarație tamponare / accident rutier</h1>
+    <p>Completează pe telefon, tabletă sau laptop — apoi generează declarația gata de tipărit în format A4, exact ca formularul de poliție. Semnezi o singură dată, la final.</p>
+    <div class="progress" id="progressBar"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <form id="declForm" onsubmit="return false;">
+
+    <!-- 1. DATE GENERALE -->
+    <section class="card">
+      <h2><span class="num">1</span> Date generale ale evenimentului</h2>
+      <div class="sub">Câmpurile marcate ca fiind completate de poliție pot fi lăsate goale — le vei completa manual pe hârtie, dacă e cazul.</div>
+      <div class="grid c3">
+        <div class="field"><label>Nr. înregistrare</label><input type="text" id="f_nr"></div>
+        <div class="field"><label>Din data</label><input type="date" id="f_nr_data"></div>
+        <div class="field"><label>Ora prezentării</label><input type="time" id="f_ora_prez"></div>
+        <div class="field"><label>Poziție GPS — latitudine (opțional)</label><input type="text" id="f_gps_lat" placeholder="ex: 44.4268"></div>
+        <div class="field"><label>Poziție GPS — longitudine (opțional)</label><input type="text" id="f_gps_long" placeholder="ex: 26.1025"></div>
+        <div class="field full"><label>Încadrarea juridică prevăzută de art. (dacă se cunoaște)</label><input type="text" id="f_incadrare"></div>
+        <div class="field full"><label>Cauza producerii (pe scurt, dacă se cunoaște)</label><input type="text" id="f_cauza"></div>
+        <div class="field full"><label>Nr. înmatriculare auto implicate (toate vehiculele)</label><input type="text" id="f_nr_implicate" placeholder="ex: B-01-ABC, B-02-XYZ"></div>
+      </div>
+    </section>
+
+    <!-- 2. DATE DECLARANT -->
+    <section class="card">
+      <h2><span class="num">2</span> Datele tale (subsemnatul/subsemnata)</h2>
+      <div class="grid">
+        <div class="field full"><label>Nume și prenume complet</label><input type="text" id="f_nume"></div>
+        <div class="field"><label>CNP</label><input type="text" id="f_cnp" maxlength="13" inputmode="numeric" placeholder="13 cifre"></div>
+        <div class="field"><label>Cetățenie</label><input type="text" id="f_cetatenie" value="Română"></div>
+        <div class="field full"><label>Domiciliu — localitate / județ</label><input type="text" id="f_domiciliu_loc"></div>
+        <div class="field full"><label>Stradă</label><input type="text" id="f_strada_dom"></div>
+      </div>
+      <div class="grid c4">
+        <div class="field"><label>Nr.</label><input type="text" id="f_dom_nr"></div>
+        <div class="field"><label>Bloc</label><input type="text" id="f_dom_bl"></div>
+        <div class="field"><label>Scara</label><input type="text" id="f_dom_sc"></div>
+        <div class="field"><label>Etaj</label><input type="text" id="f_dom_et"></div>
+        <div class="field"><label>Ap.</label><input type="text" id="f_dom_ap"></div>
+        <div class="field"><label>Sector / jud.</label><input type="text" id="f_dom_sector"></div>
+      </div>
+      <div class="grid c3">
+        <div class="field"><label>Act identitate — serie</label><input type="text" id="f_ci_seria"></div>
+        <div class="field"><label>Act identitate — nr.</label><input type="text" id="f_ci_nr"></div>
+        <div class="field"><label>Telefon</label><input type="tel" id="f_telefon"></div>
+        <div class="field"><label>Permis conducere — categ.</label><input type="text" id="f_permis_categ" placeholder="ex: B"></div>
+        <div class="field"><label>Permis conducere — nr.</label><input type="text" id="f_permis_nr"></div>
+        <div class="field"><label>Permis — eliberat la data</label><input type="date" id="f_permis_data"></div>
+      </div>
+    </section>
+
+    <!-- 3. DETALII ACCIDENT -->
+    <section class="card">
+      <h2><span class="num">3</span> Detaliile accidentului</h2>
+      <div class="grid c3">
+        <div class="field"><label>Data accidentului</label><input type="date" id="f_data_acc"></div>
+        <div class="field"><label>Ora (în jurul orei)</label><input type="time" id="f_ora_acc"></div>
+        <div class="field">
+          <label>Statutul tău</label>
+          <div class="toggle2">
+            <label><input type="radio" name="condus" value="am condus" checked><span>Am condus</span></label>
+            <label><input type="radio" name="condus" value="nu am condus"><span>Nu am condus</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="grid c3">
+        <div class="field"><label>Nr. înmatriculare / înregistrare vehicul condus</label><input type="text" id="f_veh_nr"></div>
+        <div class="field"><label>Marca</label><input type="text" id="f_veh_marca"></div>
+        <div class="field"><label>Culoarea</label><input type="text" id="f_veh_culoare"></div>
+        <div class="field full"><label>Proprietatea (al cui este vehiculul)</label><input type="text" id="f_veh_proprietate"></div>
+      </div>
+      <div class="field full">
+        <label>Locul producerii</label>
+        <div class="toggle2">
+          <label><input type="radio" name="locatie" value="in localitate" checked><span>În localitate</span></label>
+          <label><input type="radio" name="locatie" value="in afara localitatii"><span>În afara localității (Autostradă / DN / DJ / DC)</span></label>
+        </div>
+      </div>
+      <div class="grid c3">
+        <div class="field"><label>Localitate</label><input type="text" id="f_localitate"></div>
+        <div class="field"><label>Stradă (sau DN/DJ/DC + km)</label><input type="text" id="f_strada_acc"></div>
+        <div class="field"><label>Imobil nr.</label><input type="text" id="f_imobil_nr"></div>
+        <div class="field"><label>Intersecție cu</label><input type="text" id="f_intersectie"></div>
+        <div class="field"><label>Din direcția</label><input type="text" id="f_dir_din"></div>
+        <div class="field"><label>Către</label><input type="text" id="f_dir_catre"></div>
+      </div>
+      <div class="field full">
+        <label>Descrierea împrejurărilor și a cauzelor (relatare pe scurt)</label>
+        <textarea id="f_descriere" rows="6" placeholder="Descrie ce s-a întâmplat, în ordine cronologică..."></textarea>
+      </div>
+    </section>
+
+    <!-- 4. PASAGERI -->
+    <section class="card">
+      <h2><span class="num">4</span> Persoane aflate în autovehicul</h2>
+      <div class="field full" style="margin-bottom:10px;">
+        <div class="toggle2">
+          <label><input type="radio" name="pasageri_toggle" value="nu" checked><span>Nu se mai aflau alte persoane</span></label>
+          <label><input type="radio" name="pasageri_toggle" value="da"><span>Se aflau alte persoane</span></label>
+        </div>
+      </div>
+      <div id="pasageriList"></div>
+      <button type="button" class="addBtn" id="addPasagerBtn">+ Adaugă o persoană</button>
+    </section>
+
+    <!-- 5. DECLARAȚII -->
+    <section class="card">
+      <h2><span class="num">5</span> Declarații</h2>
+      <div class="sub">Bifate implicit ca în formularul tipizat — debifează ce nu se aplică situației tale.</div>
+      <div class="rowline"><input type="checkbox" id="d_no_injuries" checked><span class="txt">Declar că în urma accidentului rutier nu au rezultat răniri de persoane.</span></div>
+      <div class="rowline"><input type="checkbox" id="d_no_amiabil_convenit" checked><span class="txt">Declar că în urma accidentului rutier nu am convenit pentru soluționarea prin constat amiabil.</span></div>
+      <div class="rowline"><input type="checkbox" id="d_no_amiabil_doresc" checked><span class="txt">Nu doresc soluționarea accidentului rutier pe cale amiabilă.</span></div>
+      <div class="rowline"><input type="checkbox" id="d_solicit_politie" checked><span class="txt">Solicit soluționarea accidentului rutier de către poliție.</span></div>
+      <div class="rowline"><input type="checkbox" id="d_no_alta_unitate" checked><span class="txt">Nu am sesizat accidentul la o altă unitate de poliție.</span></div>
+      <div class="field full" style="margin-top:10px;">
+        <label>Alte pagube materiale produse în zona accidentului</label>
+        <input type="text" id="f_alte_pagube" placeholder="ex: nu sunt / descrie pe scurt">
+      </div>
+    </section>
+
+    <!-- 6. ASIGURARE -->
+    <section class="card">
+      <h2><span class="num">6</span> Asigurare RCA</h2>
+      <div class="grid c3">
+        <div class="field">
+          <label>Este asigurat?</label>
+          <div class="toggle2">
+            <label><input type="radio" name="rca_toggle" value="este" checked><span>Este</span></label>
+            <label><input type="radio" name="rca_toggle" value="nu este"><span>Nu este</span></label>
+          </div>
+        </div>
+        <div class="field full"><label>Societatea de asigurări</label><input type="text" id="f_rca_societate"></div>
+        <div class="field"><label>Serie poliță / carte verde</label><input type="text" id="f_rca_seria"></div>
+        <div class="field"><label>Nr. poliță</label><input type="text" id="f_rca_nr"></div>
+        <div class="field"><label>Valabil de la</label><input type="date" id="f_rca_de_la"></div>
+        <div class="field"><label>Valabil până la</label><input type="date" id="f_rca_pana_la"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">6</span> Asigurare CASCO</h2>
+      <div class="grid c3">
+        <div class="field">
+          <label>Este asigurat CASCO?</label>
+          <div class="toggle2">
+            <label><input type="radio" name="casco_toggle" value="este"><span>Este</span></label>
+            <label><input type="radio" name="casco_toggle" value="nu este" checked><span>Nu este</span></label>
+          </div>
+        </div>
+        <div class="field full"><label>Societatea de asigurări</label><input type="text" id="f_casco_societate"></div>
+        <div class="field"><label>Nr. contract</label><input type="text" id="f_casco_nr"></div>
+        <div class="field"><label>Valabil de la</label><input type="date" id="f_casco_de_la"></div>
+        <div class="field"><label>Valabil până la</label><input type="date" id="f_casco_pana_la"></div>
+      </div>
+    </section>
+
+    <!-- 7. CONDITII -->
+    <section class="card">
+      <h2><span class="num">7</span> Condiții la momentul accidentului</h2>
+      <div class="sub">Vizibilitate, stare carosabil, natura pavajului — alege câte o variantă. Condiții atmosferice — poți alege mai multe.</div>
+
+      <label style="font-size:12px;font-weight:700;display:block;margin:8px 0 6px;">Vizibilitate</label>
+      <div class="chipset" id="grp_vizibilitate">
+        <label class="chip"><input type="radio" name="vizibilitate" value="Ziua" checked><span>Ziua</span></label>
+        <label class="chip"><input type="radio" name="vizibilitate" value="În amurg"><span>În amurg</span></label>
+        <label class="chip"><input type="radio" name="vizibilitate" value="Noaptea"><span>Noaptea</span></label>
+        <label class="chip"><input type="radio" name="vizibilitate" value="În zori"><span>În zori</span></label>
+      </div>
+
+      <label style="font-size:12px;font-weight:700;display:block;margin:14px 0 6px;">Starea carosabilului</label>
+      <div class="chipset" id="grp_carosabil">
+        <label class="chip"><input type="radio" name="carosabil" value="Uscat" checked><span>Uscat</span></label>
+        <label class="chip"><input type="radio" name="carosabil" value="Umed"><span>Umed</span></label>
+        <label class="chip"><input type="radio" name="carosabil" value="Mâzgă"><span>Mâzgă</span></label>
+        <label class="chip"><input type="radio" name="carosabil" value="Apă"><span>Apă</span></label>
+        <label class="chip"><input type="radio" name="carosabil" value="Polei"><span>Polei</span></label>
+        <label class="chip"><input type="radio" name="carosabil" value="Zăpadă"><span>Zăpadă</span></label>
+        <label class="chip"><input type="radio" name="carosabil" value="Gheață"><span>Gheață</span></label>
+      </div>
+
+      <label style="font-size:12px;font-weight:700;display:block;margin:14px 0 6px;">Natura pavajului</label>
+      <div class="chipset" id="grp_pavaj">
+        <label class="chip"><input type="radio" name="pavaj" value="Asfalt" checked><span>Asfalt</span></label>
+        <label class="chip"><input type="radio" name="pavaj" value="Ciment"><span>Ciment</span></label>
+        <label class="chip"><input type="radio" name="pavaj" value="P. cubică"><span>P. cubică</span></label>
+        <label class="chip"><input type="radio" name="pavaj" value="Criblură"><span>Criblură</span></label>
+        <label class="chip"><input type="radio" name="pavaj" value="Pietruit"><span>Pietruit</span></label>
+        <label class="chip"><input type="radio" name="pavaj" value="Pământ"><span>Pământ</span></label>
+      </div>
+
+      <label style="font-size:12px;font-weight:700;display:block;margin:14px 0 6px;">Condiții atmosferice</label>
+      <div class="chipset" id="grp_atmosferice">
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Cer senin" checked><span>Cer senin</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Cer înnorat"><span>Cer înnorat</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Soare orbitor"><span>Soare orbitor</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Ploaie"><span>Ploaie</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Ploaie torențială"><span>Ploaie torențială</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Ninsoare"><span>Ninsoare</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Ninsoare abundentă"><span>Ninsoare abundentă</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Viscol"><span>Viscol</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Ceață"><span>Ceață</span></label>
+        <label class="chip"><input type="checkbox" name="atmosferice" value="Furtună"><span>Furtună</span></label>
+      </div>
+    </section>
+
+    <!-- 8. SCHITA -->
+    <section class="card">
+      <h2><span class="num">8</span> Schița accidentului</h2>
+      <div class="sub">Alege un vehicul din listă, apinge pe schiță pentru a-l plasa, apoi trage-l în poziție. Folosește creionul pentru a desena drumul, iar săgeata pentru direcția de deplasare.</div>
+
+      <div class="toolbar" id="vehicleToolbar">
+        <button type="button" class="toolbtn" data-stamp="car" title="Autoturism">🚗<span>Mașină</span></button>
+        <button type="button" class="toolbtn" data-stamp="taxi" title="Taxi">🚕<span>Taxi</span></button>
+        <button type="button" class="toolbtn" data-stamp="suv" title="SUV / Van">🚙<span>SUV/Van</span></button>
+        <button type="button" class="toolbtn" data-stamp="truck" title="Camion">🚚<span>Camion</span></button>
+        <button type="button" class="toolbtn" data-stamp="bus" title="Autobuz">🚌<span>Autobuz</span></button>
+        <button type="button" class="toolbtn" data-stamp="motorcycle" title="Motocicletă">🏍️<span>Moto</span></button>
+        <button type="button" class="toolbtn" data-stamp="bicycle" title="Bicicletă">🚲<span>Bicicletă</span></button>
+        <button type="button" class="toolbtn" data-stamp="scooter" title="Trotinetă">🛴<span>Trotinetă</span></button>
+        <button type="button" class="toolbtn" data-stamp="tractor" title="Tractor">🚜<span>Tractor</span></button>
+        <button type="button" class="toolbtn" data-stamp="pedestrian" title="Pieton">🚶<span>Pieton</span></button>
+        <div class="toolbar-divider"></div>
+        <button type="button" class="toolbtn" data-tool="pen" title="Creion">✏️<span>Creion</span></button>
+        <button type="button" class="toolbtn" data-tool="arrow" title="Săgeată direcție">➡️<span>Săgeată</span></button>
+        <button type="button" class="toolbtn" data-tool="text" title="Text">🔤<span>Text</span></button>
+        <button type="button" class="toolbtn" data-tool="select" title="Selectează / mută">👆<span>Selectează</span></button>
+        <div class="toolbar-divider"></div>
+        <button type="button" class="toolbtn" id="undoBtn" title="Anulează ultima acțiune">↩️<span>Anulează</span></button>
+        <button type="button" class="toolbtn" id="clearBtn" title="Golește schița">🗑️<span>Golește</span></button>
+      </div>
+
+      <div class="canvasBox"><canvas id="schitaCanvas" width="900" height="520"></canvas></div>
+
+      <div class="selToolbar" id="selToolbar" style="display:none;">
+        <button type="button" id="rotLeftBtn">↺ Rotește</button>
+        <button type="button" id="rotRightBtn">↻ Rotește</button>
+        <button type="button" id="scaleUpBtn">➕ Mărește</button>
+        <button type="button" id="scaleDownBtn">➖ Micșorează</button>
+        <button type="button" id="deleteSelBtn" style="color:#c0392b;">🗑️ Șterge selecția</button>
+      </div>
+      <div class="hint" id="toolHint">Instrument activ: <b>Selectează / mută</b></div>
+    </section>
+
+    <!-- 9. SEMNATURA -->
+    <section class="card">
+      <h2><span class="num">9</span> Semnătura ta</h2>
+      <div class="sub">Desenează semnătura cu degetul sau mouse-ul. Va fi folosită automat în toate locurile din declarație unde apare "Semnătura" ta (nu și cele destinate polițistului).</div>
+      <div class="sigWrap">
+        <canvas id="sigCanvas" width="860" height="180"></canvas>
+        <div class="sigPlaceholder" id="sigPlaceholder">semnează aici</div>
+      </div>
+      <div class="grid" style="margin-top:10px;">
+        <div class="field"><label>Data semnării</label><input type="date" id="f_data_semnare"></div>
+        <div class="field" style="justify-content:flex-end;">
+          <button type="button" class="miniBtn" id="clearSigBtn" style="width:100%;">Șterge semnătura</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ZONA AVARIATA (optional) -->
+    <section class="card">
+      <h2><span class="num">10</span> Zonă avariată <span style="font-weight:400;color:var(--muted);font-size:12px;">(opțional — de regulă se completează de polițist)</span></h2>
+      <div class="sub">Poți bifa orientativ elementele avariate, pentru evidența ta.</div>
+      <div class="chipset" id="grp_zone"></div>
+      <label style="font-size:12px;font-weight:700;display:block;margin:14px 0 6px;">Caracteristica avariei</label>
+      <div class="chipset" id="grp_caracteristica">
+        <label class="chip"><input type="checkbox" name="caracteristica" value="Înfundat"><span>Înfundat</span></label>
+        <label class="chip"><input type="checkbox" name="caracteristica" value="Zgâriat"><span>Zgâriat</span></label>
+        <label class="chip"><input type="checkbox" name="caracteristica" value="Deplasat"><span>Deplasat</span></label>
+        <label class="chip"><input type="checkbox" name="caracteristica" value="Rupt"><span>Rupt</span></label>
+        <label class="chip"><input type="checkbox" name="caracteristica" value="Spart"><span>Spart</span></label>
+        <label class="chip"><input type="checkbox" name="caracteristica" value="Lipsă"><span>Lipsă</span></label>
+      </div>
+    </section>
+
+  </form>
+</div>
+
+<div class="actionbar">
+  <div class="info">Verifică datele, apoi generează declarația în format A4, gata de tipărit și semnat.</div>
+  <button type="button" class="btn primary" id="generateBtn">Generează declarația (A4)</button>
+</div>
+
+<div id="previewOverlay">
+  <div class="previewTop">
+    <b>Previzualizare declarație</b>
+    <button style="background:#39424f;color:#fff;" id="closePreviewBtn">✕ Înapoi la editare</button>
+    <button style="background:#1c5df0;color:#fff;" id="printBtn">🖨️ Printează / Salvează PDF</button>
+  </div>
+  <div class="previewScroll" id="printOutput"></div>
+</div>
+
+<script>
+(function(){
+
+  /* ---------------- helpers ---------------- */
+  const $ = id => document.getElementById(id);
+  function val(id){ const el = $(id); return el ? (el.value||'').trim() : ''; }
+  function radioVal(name){ const el = document.querySelector('input[name="'+name+'"]:checked'); return el ? el.value : ''; }
+  function checkedList(name){
+    return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(i=>i.value);
+  }
+  function b(v, cls){ // blank field for print
+    const c = 'blank' + (cls?(' '+cls):'');
+    const text = v ? v : ' '.repeat(Math.max(3, Math.min(18,(cls==='xw'?18:cls==='wide'?12:6))));
+    return '<span class="'+c+'">'+esc(v)+(v?'':'&nbsp;')+'</span>';
+  }
+  function esc(s){
+    return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function fmtDate(iso){
+    if(!iso) return '';
+    const p = iso.split('-'); if(p.length!==3) return iso;
+    return p[2]+'.'+p[1]+'.'+p[0];
+  }
+  function ck(on){ return '<span class="ckbox'+(on?' on':'')+'"></span>'; }
+
+  /* ---------------- progress bar ---------------- */
+  const sections = document.querySelectorAll('#declForm > section');
+  const progressBar = $('progressBar');
+  sections.forEach(()=>{ const s=document.createElement('span'); progressBar.appendChild(s); });
+  function updateProgress(){
+    document.querySelectorAll('#declForm > section').forEach((sec,i)=>{
+      const inputs = sec.querySelectorAll('input,textarea,select');
+      let filled=0,total=0;
+      inputs.forEach(inp=>{
+        if(inp.type==='radio'||inp.type==='checkbox') return;
+        total++; if((inp.value||'').trim()) filled++;
+      });
+      const bar = progressBar.children[i];
+      if(total>0 && filled>0) bar.classList.add('done'); else bar.classList.remove('done');
+    });
+  }
+  document.addEventListener('input', updateProgress);
+
+  /* ---------------- toggle2 active-state (avoids CSS :has(), unsupported on some older mobile browsers) ---------------- */
+  function syncToggles(){
+    document.querySelectorAll('.toggle2').forEach(group=>{
+      group.querySelectorAll('label').forEach(lab=>{
+        const inp = lab.querySelector('input');
+        lab.classList.toggle('on', !!(inp && inp.checked));
+      });
+    });
+  }
+  document.addEventListener('change', syncToggles);
+  syncToggles();
+
+  /* ---------------- passengers ---------------- */
+  const pasageriList = $('pasageriList');
+  let pasagerCount = 0;
+  function addPasagerRow(){
+    pasagerCount++;
+    const row = document.createElement('div');
+    row.className='passenger-row';
+    row.innerHTML = '<div class="field"><label>Nume și prenume</label><input type="text" class="pas-nume"></div>'+
+      '<div class="field"><label>Data nașterii</label><input type="date" class="pas-data"></div>'+
+      '<button type="button" class="miniBtn remove">Șterge</button>';
+    row.querySelector('.remove').onclick=()=>row.remove();
+    pasageriList.appendChild(row);
+  }
+  $('addPasagerBtn').onclick=addPasagerRow;
+  addPasagerRow(); addPasagerRow();
+
+  /* ---------------- zona avariata chips (built from list) ---------------- */
+  const zoneItems = ["Aripă dreapta față","Aripă dreapta spate","Aripă stânga față","Aripă stânga spate","Bară față","Bară spate",
+    "Capotă față","Capotă spate","Roata stânga față","Far dreapta față","Far stânga față","Geam portieră dreapta față",
+    "Geam portieră stânga față","Geam portieră dreapta spate","Geam portieră stânga spate","Grila față","Lampă spate dreapta",
+    "Roată stânga spate","Lampă spate stânga","Lunetă","Parbriz","Portieră dreapta față","Portieră dreapta spate",
+    "Portieră stânga spate","Portieră stângă față","Oglinda stânga","Roata dreapta față","Oglindă dreapta","Plafon",
+    "Stâlp stânga portiere","Stâlp dreapta portiere","Prag stânga","Prag dreapta","Scut față","Roată dreapta spate"];
+  const grpZone = $('grp_zone');
+  zoneItems.forEach(item=>{
+    const lab = document.createElement('label'); lab.className='chip';
+    lab.innerHTML = '<input type="checkbox" name="zona" value="'+item+'"><span>'+item+'</span>';
+    grpZone.appendChild(lab);
+  });
+
+  /* =====================================================================
+     SCHITA CANVAS
+  ===================================================================== */
+  const canvas = $('schitaCanvas');
+  const ctx = canvas.getContext('2d');
+  let scene = []; // {type:'vehicle'|'text'|'stroke'|'arrow', ...}
+  let currentTool = 'select';
+  let currentStamp = null;
+  let selectedIndex = -1;
+  let dragging = false, dragOffX=0, dragOffY=0;
+  let drawingStroke = null;
+  let drawingArrowStart = null;
+  let previewArrow = null;
+
+  function canvasPoint(evt){
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width/rect.width, sy = canvas.height/rect.height;
+    const cx = (evt.touches? evt.touches[0].clientX : evt.clientX) - rect.left;
+    const cy = (evt.touches? evt.touches[0].clientY : evt.clientY) - rect.top;
+    return {x: cx*sx, y: cy*sy};
+  }
+
+  function drawGrid(){
+    ctx.save();
+    ctx.strokeStyle='#eef1f6'; ctx.lineWidth=1;
+    for(let x=0;x<canvas.width;x+=30){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+    for(let y=0;y<canvas.height;y+=30){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawVehicle(o){
+    ctx.save();
+    ctx.translate(o.x,o.y); ctx.rotate(o.rot); ctx.scale(o.scale,o.scale);
+    ctx.lineWidth=2.4; ctx.strokeStyle='#1b2430'; ctx.fillStyle='#dfe8ff';
+    switch(o.stamp){
+      case 'car': case 'taxi': case 'suv': {
+        roundRect(-30,-15,60,30,8); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-14,-15); ctx.lineTo(-8,-15); ctx.moveTo(-14,15); ctx.lineTo(-8,15); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10,-15); ctx.lineTo(16,-15); ctx.moveTo(10,15); ctx.lineTo(16,15); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(24,-8); ctx.lineTo(24,8); ctx.stroke(); // windshield
+        wheels([[-18,-15],[-18,15],[18,-15],[18,15]],5);
+        break;
+      }
+      case 'truck': {
+        roundRect(-38,-16,76,32,6); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(6,-16); ctx.lineTo(6,16); ctx.stroke();
+        wheels([[-28,-16],[-28,16],[-10,-16],[-10,16],[20,-16],[20,16]],5);
+        break;
+      }
+      case 'bus': {
+        roundRect(-42,-15,84,30,6); ctx.fill(); ctx.stroke();
+        for(let i=-30;i<38;i+=13){ ctx.beginPath(); ctx.moveTo(i,-15); ctx.lineTo(i,-9); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(i,15); ctx.lineTo(i,9); ctx.stroke(); }
+        wheels([[-28,-15],[-28,15],[26,-15],[26,15]],5);
+        break;
+      }
+      case 'motorcycle': {
+        ctx.beginPath(); ctx.arc(-16,0,9,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(16,0,9,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-16,0); ctx.lineTo(16,0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10,0); ctx.lineTo(16,-10); ctx.lineTo(20,-10); ctx.stroke();
+        break;
+      }
+      case 'bicycle': {
+        ctx.lineWidth=1.8;
+        ctx.beginPath(); ctx.arc(-14,0,8,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(14,0,8,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-14,0); ctx.lineTo(0,-8); ctx.lineTo(14,0); ctx.lineTo(0,-8); ctx.lineTo(-4,0); ctx.stroke();
+        break;
+      }
+      case 'scooter': {
+        ctx.lineWidth=1.8;
+        ctx.beginPath(); ctx.arc(-14,4,5,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(14,4,5,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-14,4); ctx.lineTo(14,4); ctx.moveTo(-14,4); ctx.lineTo(-14,-14); ctx.stroke();
+        break;
+      }
+      case 'tractor': {
+        roundRect(-20,-8,30,16,4); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(-10,14,13,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(16,10,7,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(-10,-14,13,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(16,-10,7,0,7); ctx.stroke();
+        break;
+      }
+      case 'pedestrian': {
+        ctx.lineWidth=2.2;
+        ctx.beginPath(); ctx.arc(0,-14,5,0,7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,-9); ctx.lineTo(0,8); ctx.moveTo(0,-3); ctx.lineTo(-9,3);
+        ctx.moveTo(0,-3); ctx.lineTo(9,3); ctx.moveTo(0,8); ctx.lineTo(-8,18); ctx.moveTo(0,8); ctx.lineTo(8,18); ctx.stroke();
+        break;
+      }
+    }
+    ctx.restore();
+    if(o.label){
+      ctx.save(); ctx.font='11px sans-serif'; ctx.fillStyle='#1b2430'; ctx.textAlign='center';
+      ctx.fillText(o.label, o.x, o.y+bboxHalf(o).h+12);
+      ctx.restore();
+    }
+  }
+  function wheels(pts,r){
+    ctx.fillStyle='#1b2430';
+    pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p[0],p[1],r,0,7); ctx.fill(); });
+    ctx.fillStyle='#dfe8ff';
+  }
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+  function bboxHalf(o){
+    const base = {car:{w:34,h:19},taxi:{w:34,h:19},suv:{w:34,h:19},truck:{w:42,h:20},bus:{w:46,h:19},
+      motorcycle:{w:20,h:13},bicycle:{w:18,h:12},scooter:{w:18,h:18},tractor:{w:26,h:26},pedestrian:{w:12,h:22}};
+    const bb = base[o.stamp]||{w:30,h:18};
+    return {w:bb.w*o.scale, h:bb.h*o.scale};
+  }
+
+  function redraw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawGrid();
+    scene.forEach((o,i)=>{
+      if(o.type==='vehicle') drawVehicle(o);
+      else if(o.type==='stroke') drawStroke(o);
+      else if(o.type==='arrow') drawArrow(o.x1,o.y1,o.x2,o.y2);
+      else if(o.type==='text') drawText(o);
+      if(i===selectedIndex && (o.type==='vehicle'||o.type==='text')){
+        ctx.save(); ctx.strokeStyle='#1c5df0'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+        const half = o.type==='vehicle'? bboxHalf(o) : {w:(o.text.length*3.6)+6, h:12};
+        ctx.strokeRect(o.x-half.w-6, o.y-half.h-6, (half.w+6)*2, (half.h+6)*2);
+        ctx.restore();
+      }
+    });
+    if(previewArrow) drawArrow(previewArrow.x1,previewArrow.y1,previewArrow.x2,previewArrow.y2,true);
+  }
+  function drawStroke(o){
+    ctx.save(); ctx.strokeStyle=o.color||'#1b2430'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.beginPath();
+    o.points.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+    ctx.stroke(); ctx.restore();
+  }
+  function drawArrow(x1,y1,x2,y2,preview){
+    ctx.save(); ctx.strokeStyle= preview? '#9aa8c2' : '#e0453f'; ctx.fillStyle= preview? '#9aa8c2' : '#e0453f'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    const ang = Math.atan2(y2-y1,x2-x1);
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-14*Math.cos(ang-0.4), y2-14*Math.sin(ang-0.4));
+    ctx.lineTo(x2-14*Math.cos(ang+0.4), y2-14*Math.sin(ang+0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function drawText(o){
+    ctx.save(); ctx.font='13px sans-serif'; ctx.fillStyle='#1b2430'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(o.text, o.x, o.y);
+    ctx.restore();
+  }
+
+  function hitTest(pt){
+    for(let i=scene.length-1;i>=0;i--){
+      const o = scene[i];
+      if(o.type==='vehicle'){
+        const half = bboxHalf(o);
+        if(Math.abs(pt.x-o.x)<=half.w+8 && Math.abs(pt.y-o.y)<=half.h+8) return i;
+      } else if(o.type==='text'){
+        const half = {w:(o.text.length*3.6)+6, h:12};
+        if(Math.abs(pt.x-o.x)<=half.w+8 && Math.abs(pt.y-o.y)<=half.h+8) return i;
+      }
+    }
+    return -1;
+  }
+
+  function setTool(tool, stamp){
+    currentTool = tool; currentStamp = stamp||null;
+    selectedIndex = -1;
+    document.querySelectorAll('#vehicleToolbar .toolbtn').forEach(btn=>btn.classList.remove('active'));
+    let activeBtn;
+    if(tool==='stamp') activeBtn = document.querySelector('[data-stamp="'+stamp+'"]');
+    else activeBtn = document.querySelector('[data-tool="'+tool+'"]');
+    if(activeBtn) activeBtn.classList.add('active');
+    const names = {select:'Selectează / mută', pen:'Creion', arrow:'Săgeată direcție', text:'Text'};
+    $('toolHint').innerHTML = 'Instrument activ: <b>'+(tool==='stamp'? ('plasează '+stampLabel(stamp)) : names[tool])+'</b>';
+    $('selToolbar').style.display='none';
+    redraw();
+  }
+  function stampLabel(s){
+    const m={car:'mașină',taxi:'taxi',suv:'SUV/Van',truck:'camion',bus:'autobuz',motorcycle:'motocicletă',
+      bicycle:'bicicletă',scooter:'trotinetă',tractor:'tractor',pedestrian:'pieton'};
+    return m[s]||s;
+  }
+
+  document.querySelectorAll('#vehicleToolbar [data-stamp]').forEach(btn=>{
+    btn.addEventListener('click',()=> setTool('stamp', btn.getAttribute('data-stamp')));
+  });
+  document.querySelectorAll('#vehicleToolbar [data-tool]').forEach(btn=>{
+    btn.addEventListener('click',()=> setTool(btn.getAttribute('data-tool')));
+  });
+  setTool('select');
+
+  function pushHistory(){ /* scene array itself is the history via push/pop */ }
+
+  canvas.addEventListener('pointerdown', e=>{
+    canvas.setPointerCapture(e.pointerId);
+    const pt = canvasPoint(e);
+    if(currentTool==='stamp'){
+      const obj = {type:'vehicle', stamp:currentStamp, x:pt.x, y:pt.y, rot:0, scale:1};
+      scene.push(obj);
+      selectedIndex = scene.length-1;
+      currentTool='select'; currentStamp=null;
+      document.querySelectorAll('#vehicleToolbar .toolbtn').forEach(b=>b.classList.remove('active'));
+      document.querySelector('[data-tool="select"]').classList.add('active');
+      $('toolHint').innerHTML = 'Instrument activ: <b>Selectează / mută</b>';
+      $('selToolbar').style.display='flex';
+      redraw();
+      return;
+    }
+    if(currentTool==='select'){
+      const idx = hitTest(pt);
+      selectedIndex = idx;
+      $('selToolbar').style.display = idx>=0 ? 'flex' : 'none';
+      if(idx>=0){ dragging=true; dragOffX = pt.x-scene[idx].x; dragOffY = pt.y-scene[idx].y; }
+      redraw();
+      return;
+    }
+    if(currentTool==='pen'){
+      drawingStroke = {type:'stroke', points:[pt], color:'#1b2430'};
+      scene.push(drawingStroke);
+      redraw();
+      return;
+    }
+    if(currentTool==='arrow'){
+      drawingArrowStart = pt;
+      return;
+    }
+    if(currentTool==='text'){
+      const txt = window.prompt('Text de adăugat pe schiță:','');
+      if(txt){ scene.push({type:'text', x:pt.x, y:pt.y, text:txt}); }
+      redraw();
+      return;
+    }
+  });
+
+  canvas.addEventListener('pointermove', e=>{
+    const pt = canvasPoint(e);
+    if(currentTool==='select' && dragging && selectedIndex>=0){
+      scene[selectedIndex].x = pt.x-dragOffX;
+      scene[selectedIndex].y = pt.y-dragOffY;
+      redraw();
+      return;
+    }
+    if(currentTool==='pen' && drawingStroke){
+      drawingStroke.points.push(pt);
+      redraw();
+      return;
+    }
+    if(currentTool==='arrow' && drawingArrowStart){
+      previewArrow = {x1:drawingArrowStart.x, y1:drawingArrowStart.y, x2:pt.x, y2:pt.y};
+      redraw();
+      return;
+    }
+  });
+
+  function endInteraction(e){
+    if(currentTool==='arrow' && drawingArrowStart){
+      const pt = canvasPoint(e);
+      scene.push({type:'arrow', x1:drawingArrowStart.x, y1:drawingArrowStart.y, x2:pt.x, y2:pt.y});
+      drawingArrowStart=null; previewArrow=null;
+      redraw();
+    }
+    dragging=false; drawingStroke=null;
+  }
+  canvas.addEventListener('pointerup', endInteraction);
+  canvas.addEventListener('pointerleave', e=>{ if(currentTool!=='arrow'){ dragging=false; drawingStroke=null; } });
+
+  $('undoBtn').addEventListener('click',()=>{ scene.pop(); selectedIndex=-1; $('selToolbar').style.display='none'; redraw(); });
+  $('clearBtn').addEventListener('click',()=>{
+    if(scene.length && !confirm('Golești complet schița?')) return;
+    scene=[]; selectedIndex=-1; $('selToolbar').style.display='none'; redraw();
+  });
+  $('rotLeftBtn').addEventListener('click',()=>{ if(selectedIndex>=0){ scene[selectedIndex].rot-=0.26; redraw(); }});
+  $('rotRightBtn').addEventListener('click',()=>{ if(selectedIndex>=0){ scene[selectedIndex].rot+=0.26; redraw(); }});
+  $('scaleUpBtn').addEventListener('click',()=>{ if(selectedIndex>=0){ scene[selectedIndex].scale=Math.min(3,scene[selectedIndex].scale*1.15); redraw(); }});
+  $('scaleDownBtn').addEventListener('click',()=>{ if(selectedIndex>=0){ scene[selectedIndex].scale=Math.max(0.4,scene[selectedIndex].scale/1.15); redraw(); }});
+  $('deleteSelBtn').addEventListener('click',()=>{
+    if(selectedIndex>=0){ scene.splice(selectedIndex,1); selectedIndex=-1; $('selToolbar').style.display='none'; redraw(); }
+  });
+
+  redraw();
+
+  /* =====================================================================
+     SIGNATURE PAD
+  ===================================================================== */
+  const sigCanvas = $('sigCanvas');
+  const sigCtx = sigCanvas.getContext('2d');
+  sigCtx.lineWidth=2.6; sigCtx.lineJoin='round'; sigCtx.lineCap='round'; sigCtx.strokeStyle='#132043';
+  let sigDrawing=false, sigHasContent=false;
+  function sigPoint(e){
+    const rect = sigCanvas.getBoundingClientRect();
+    const sx=sigCanvas.width/rect.width, sy=sigCanvas.height/rect.height;
+    const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+    const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+    return {x:cx*sx,y:cy*sy};
+  }
+  sigCanvas.addEventListener('pointerdown', e=>{
+    sigCanvas.setPointerCapture(e.pointerId);
+    sigDrawing=true; sigHasContent=true;
+    $('sigPlaceholder').style.display='none';
+    const p=sigPoint(e); sigCtx.beginPath(); sigCtx.moveTo(p.x,p.y);
+  });
+  sigCanvas.addEventListener('pointermove', e=>{
+    if(!sigDrawing) return;
+    const p=sigPoint(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke();
+  });
+  window.addEventListener('pointerup', ()=>{ sigDrawing=false; });
+  $('clearSigBtn').addEventListener('click',()=>{
+    sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+    sigHasContent=false; $('sigPlaceholder').style.display='flex';
+  });
+
+  /* =====================================================================
+     GENERATE PRINT OUTPUT
+  ===================================================================== */
+  function buildPage1(sigDataUrl){
+    const cnp = val('f_cnp');
+    let cnpBoxes = '<span class="cnpBoxes">';
+    for(let i=0;i<13;i++) cnpBoxes += '<span>'+(cnp[i]||'')+'</span>';
+    cnpBoxes += '</span>';
+
+    const condus = radioVal('condus');
+    const locatie = radioVal('locatie');
+    const pasageriToggle = radioVal('pasageri_toggle');
+    const rows = Array.from(document.querySelectorAll('.passenger-row')).map(r=>({
+      nume: r.querySelector('.pas-nume').value.trim(),
+      data: r.querySelector('.pas-data').value
+    })).filter(r=>r.nume||r.data);
+
+    let pasagerHtml = '';
+    if(rows.length){
+      rows.forEach(r=>{ pasagerHtml += '<div class="kv">Nume prenume '+b(r.nume,'wide')+' data nașterii '+b(fmtDate(r.data))+'</div>'; });
+    } else {
+      pasagerHtml = '<div class="kv">Nume prenume '+b('','wide')+' data nașterii '+b('')+'</div>'+
+                    '<div class="kv">Nume prenume '+b('','wide')+' data nașterii '+b('')+'</div>';
+    }
+
+    const rcaToggle = radioVal('rca_toggle');
+    const cascoToggle = radioVal('casco_toggle');
+
+    function condRow(label, options, selected, multi){
+      return '<td class="grp">'+label+'</td><td colspan="3"><div style="display:flex;flex-wrap:wrap;gap:6px 10px;">'+
+        options.map(o=>'<span class="ckcell">'+ck(multi? selected.includes(o) : selected===o)+' '+o+'</span>').join('')+
+        '</div></td>';
+    }
+    const vizSel = radioVal('vizibilitate'), carSel = radioVal('carosabil'), pavSel = radioVal('pavaj'), atmSel = checkedList('atmosferice');
+
+    return '<div class="a4-page">'+
+      '<div class="ph-row">'+
+        '<div class="ph-col"><div class="kv">Nr. '+b(val('f_nr'))+' din '+b(fmtDate(val('f_nr_data')))+' ora prezentării '+b(val('f_ora_prez'))+'</div>'+
+        '<div class="kv">Poziție GPS: lat. '+b(val('f_gps_lat'))+' (opțional) long. '+b(val('f_gps_long'))+'</div>'+
+        '<div class="kv">Încadrarea juridică prevăzută de art. '+b(val('f_incadrare'),'xw')+'</div>'+
+        '<div class="kv">Cauza producerii: '+b(val('f_cauza'),'xw')+'</div>'+
+        '<div class="kv">Nr. înmatriculare auto implicate: '+b(val('f_nr_implicate'),'xw')+'</div></div>'+
+        '<div class="ph-col"><div class="kv">Proces-verbal seria '+b(val(''))+' nr. '+b('')+' din '+b('')+'</div>'+
+        '<div class="kv">Aut. reparație seria '+b('')+' nr. '+b('')+' din '+b('')+'</div>'+
+        '<div class="kv">Lucrător de poliție '+b('','xw')+'</div>'+
+        '<div class="kv">Semnătura polițist '+b('','xw')+'</div>'+
+        '<div class="kv">Număr test alcool '+b('')+' valoare '+b('')+' sr. aparat '+b('')+'</div></div>'+
+      '</div>'+
+      '<div class="titleDecl">DECLARAȚIE</div>'+
+      '<div class="legalbox">(Declararea necorespunzătoare a adevărului sau inducerea în eroare a organului de poliție cu privire la accident, în scopul obținerii de foloase materiale necuvenite, se pedepsește în conformitate cu prevederile Codului penal, art. 326 – falsul în declarații, se pedepsește cu închisoare de la 3 luni la 2 ani), (Codul penal art. 273 - mărturia mincinoasă, se pedepsește cu închisoare de la 6 luni la 3 ani), (Codul penal art. 245 - înșelăciunea privind asigurările, se pedepsește cu închisoarea de la unu la 5 ani);<br>'+
+      'Conform art. 79 alin 1 din O.U.G. 195/2002 republicată și modificată, sunteți obligat să vă prezentați la unitatea de poliție pe raza căreia s-a produs accidentul pentru soluționarea evenimentului rutier în termen de cel mult 24 de ore de la producerea acestuia.<br>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:4px;"><span>Am luat la cunoștință semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span><span>data '+b(fmtDate(val('f_data_semnare')))+'</span></div></div>'+
+
+      '<div class="prose">'+
+      'Subsemnatul(a) '+b(val('f_nume'),'xw')+' CNP '+cnpBoxes+' cetățenie '+b(val('f_cetatenie'))+' domiciliat(ă) în '+b(val('f_domiciliu_loc'),'wide')+
+      ' str. '+b(val('f_strada_dom'),'wide')+' nr. '+b(val('f_dom_nr'))+' bl. '+b(val('f_dom_bl'))+' sc. '+b(val('f_dom_sc'))+' et. '+b(val('f_dom_et'))+' ap. '+b(val('f_dom_ap'))+
+      ' sector/jud. '+b(val('f_dom_sector'))+' posesor al actului de identitate seria '+b(val('f_ci_seria'))+' nr. '+b(val('f_ci_nr'))+
+      ' și al permisului de conducere categ. '+b(val('f_permis_categ'))+', nr. '+b(val('f_permis_nr'))+' eliberat la data de '+b(fmtDate(val('f_permis_data')))+
+      ', tel. '+b(val('f_telefon'))+', declar pe propria răspundere următoarele aspecte, privind cauzele și consecințele accidentului/evenimentului rutier: '+
+      'La data de '+b(fmtDate(val('f_data_acc')))+' în jurul orei '+b(val('f_ora_acc'))+' '+
+      '<b>'+ (condus==='nu am condus' ? 'nu am condus' : 'am condus') +'</b> vehiculul cu numărul de înmatriculare/înregistrare '+b(val('f_veh_nr'),'wide')+
+      ' marca '+b(val('f_veh_marca'))+' culoarea '+b(val('f_veh_culoare'))+' proprietatea '+b(val('f_veh_proprietate'),'wide')+
+      ' <b>'+(locatie==='in afara localitatii' ? 'în afara localității (Autostrada, DN, DJ, DC)' : 'în localitatea')+'</b> '+b(val('f_localitate'),'wide')+
+      ' pe str. (km) '+b(val('f_strada_acc'),'wide')+' imobil nr. '+b(val('f_imobil_nr'))+
+      ' intersecție cu '+b(val('f_intersectie'),'wide')+' din direcția '+b(val('f_dir_din'))+' către '+b(val('f_dir_catre'))+'.'+
+      '</div>'+
+      '<div class="boxed" style="min-height:26mm;margin-top:6px;white-space:pre-wrap;">'+esc(val('f_descriere'))+'</div>'+
+
+      '<div style="margin-top:10px;"><b>În auto</b> '+ck(pasageriToggle!=='da')+' nu se mai aflau &nbsp; / &nbsp; '+ck(pasageriToggle==='da')+' se aflau alte persoane:</div>'+
+      pasagerHtml+
+
+      '<div style="display:flex;gap:10px;margin-top:8px;align-items:flex-start;">'+
+      '<ul class="declList" style="flex:1;">'+
+        '<li>'+ck($('d_no_injuries').checked)+' Declar că în urma accidentului rutier nu au rezultat răniri de persoane.</li>'+
+        '<li>'+ck($('d_no_amiabil_convenit').checked)+' Declar că în urma accidentului rutier nu am convenit pentru soluționarea prin constat amiabil.</li>'+
+        '<li>'+ck($('d_no_amiabil_doresc').checked)+' Nu doresc soluționarea accidentului rutier pe cale amiabilă.</li>'+
+        '<li>'+ck($('d_solicit_politie').checked)+' Solicit soluționarea accidentului rutier de către poliție.</li>'+
+        '<li>'+ck($('d_no_alta_unitate').checked)+' Nu am sesizat accidentul la o altă unitate de poliție.</li>'+
+        '<li>Alte pagube materiale produse în zona accidentului (nu sunt) '+b(val('f_alte_pagube'),'wide')+'.</li>'+
+      '</ul>'+
+      '<div class="sigBox" style="width:34mm;">Am luat la cunoștință<br>Semnătură<br>'+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':'')+'</div>'+
+      '</div>'+
+
+      '<div class="prose" style="margin-top:8px;">Autovehiculul marca '+b(val('f_veh_marca'))+' nr. de înmatriculare '+b(val('f_veh_nr'),'wide')+
+      ' <b>'+(rcaToggle==='nu este' ? 'nu este' : 'este')+'</b> asigurat la Societatea '+b(val('f_rca_societate'),'wide')+
+      ' cu contractul de răspundere civilă obligatorie sau cartea verde, seria '+b(val('f_rca_seria'))+' nr. '+b(val('f_rca_nr'))+
+      ' valabil de la '+b(fmtDate(val('f_rca_de_la')))+' până la '+b(fmtDate(val('f_rca_pana_la')))+'.<br>'+
+      'Autovehiculul <b>'+(cascoToggle==='este' ? 'este' : 'nu este')+'</b> asigurat CASCO cu contractul nr. '+b(val('f_casco_nr'),'wide')+
+      ' emis de Societatea '+b(val('f_casco_societate'),'wide')+' valabil de la '+b(fmtDate(val('f_casco_de_la')))+' până la '+b(fmtDate(val('f_casco_pana_la')))+'.</div>'+
+
+      '<table class="condTable"><tr>'+condRow('VIZIBILITATE', ['Ziua','În amurg','Noaptea','În zori'], vizSel, false)+'</tr>'+
+      '<tr>'+condRow('STAREA CAROSABILULUI', ['Uscat','Umed','Mâzgă','Apă','Polei','Zăpadă','Gheață'], carSel, false)+'</tr>'+
+      '<tr>'+condRow('NATURA PAVAJULUI', ['Asfalt','Ciment','P. cubică','Criblură','Pietruit','Pământ'], pavSel, false)+'</tr>'+
+      '<tr>'+condRow('CONDIȚII ATMOSFERICE', ['Cer senin','Cer înnorat','Soare orbitor','Ploaie','Ploaie torențială','Ninsoare','Ninsoare abundentă','Viscol','Ceață','Furtună'], atmSel, true)+'</tr>'+
+      '</table>'+
+
+      '<div class="pageFoot"><span>Data '+b(fmtDate(val('f_data_semnare')))+'</span><span>Semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span></div>'+
+      '<div class="footNote">Notă: În mod obligatoriu se vor completa corect toate spațiile libere din conținutul declarației. Se va bifa cu „X" căsuța corespunzătoare momentului accidentului.</div>'+
+      '</div>';
+  }
+
+  function buildPage2(schitaDataUrl, sigDataUrl){
+    const zoneSel = checkedList('zona');
+    const caracteristicaSel = checkedList('caracteristica');
+    return '<div class="a4-page">'+
+      '<div class="boxed"><b>SCHIȚA ACCIDENTULUI</b>'+
+      '<div class="schitaBox">'+(schitaDataUrl? '<img src="'+schitaDataUrl+'">' : '<span style="color:#999;font-size:11px;">(schiță necompletată)</span>')+'</div>'+
+      '</div>'+
+      '<div class="pageFoot"><span>Data '+b(fmtDate(val('f_data_semnare')))+'</span><span>Semnătura '+(sigDataUrl?'<img class="sigImg" src="'+sigDataUrl+'">':b('','wide'))+'</span></div>'+
+
+      '<hr style="margin:12px 0;border:none;border-top:2px solid #333;">'+
+
+      '<div style="text-align:center;font-weight:700;margin-bottom:4px;">ZONĂ AVARIATĂ <span class="sectionNote">(opțional, orientativ — se validează de către polițist)</span></div>'+
+      '<div class="zoneGrid">'+zoneItems.map(z=>'<div>'+ck(zoneSel.includes(z))+' '+z+'</div>').join('')+'</div>'+
+
+      '<div style="text-align:center;font-weight:700;margin:8px 0 4px;">CARACTERISTICA AVARIEI</div>'+
+      '<div class="zoneGrid" style="grid-template-columns:repeat(3,1fr);">'+
+        ['Înfundat','Zgâriat','Deplasat','Rupt','Spart','Lipsă'].map(c=>'<div>'+ck(caracteristicaSel.includes(c))+' '+c+'</div>').join('')+
+      '</div>'+
+
+      '<div class="boxed sectionNote" style="margin-top:12px;">Secțiunea "Poziționarea zonei avariate" (diagrame vehicul) și rubrica "Grad, Nume, Prenume, Semnătură" se completează de către agentul de poliție, pe formularul tipărit.</div>'+
+      '<div class="pageFoot" style="margin-top:26px;"><span>Grad ________ Nume ________________ Prenume ________________</span><span>Semnătura ________________</span></div>'+
+      '</div>';
+  }
+
+  $('generateBtn').addEventListener('click', ()=>{
+    const sigDataUrl = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
+    const schitaDataUrl = scene.length ? canvas.toDataURL('image/png') : null;
+    const out = $('printOutput');
+    out.innerHTML = buildPage1(sigDataUrl) + buildPage2(schitaDataUrl, sigDataUrl);
+    $('previewOverlay').classList.add('show');
+    window.scrollTo(0,0);
+  });
+  $('closePreviewBtn').addEventListener('click', ()=>{ $('previewOverlay').classList.remove('show'); });
+  $('printBtn').addEventListener('click', ()=>{ window.print(); });
+
+  updateProgress();
+})();
+</script>
+</body>
+</html>
